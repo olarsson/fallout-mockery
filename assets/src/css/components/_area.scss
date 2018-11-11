@@ -1,0 +1,15 @@
+main > .area {
+  display: block;
+  position: relative;
+  width: 630px;
+  height: 450px;
+  background-color: orange;
+
+  .mouseBox {
+    position: absolute;
+    width: 45px;
+    height: 45px;
+    background-color: white;
+  }
+
+}
