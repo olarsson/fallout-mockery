@@ -5,11 +5,47 @@ main > .area {
   height: 450px;
   background-color: orange;
 
+  .mousePointer {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 5px;
+    background-color: black;
+    z-index: 3;
+  }
+
   .mouseBox {
     position: absolute;
     width: 45px;
     height: 45px;
     background-color: white;
+    z-index: 1;
+    //transition: transform 0.5s;
+  }
+
+  .player {
+    position: absolute;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    background-color: green;
+    z-index: 2;
+    transition: transform 0.2s linear;
+  }
+
+  .restrictedBoxes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    .restrictedBox {
+      position: absolute;
+      background-color: red;
+      width: 45px;
+      height: 45px;
+    }
   }
 
 }
