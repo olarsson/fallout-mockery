@@ -66,8 +66,9 @@ var that = {
     ],
 
     isCordAllowed(x,y) {
+      if (x > that.defaults.positionsX || x < 0) return false;
+      if (y > that.defaults.positionsY || y < 0) return false;
       return !that.restricted.cords.find(xy => {
-        //console.log(xy, x +' ' + y);
         return (xy.x === x && xy.y === y)
       });
     }
@@ -200,6 +201,18 @@ var that = {
 
   },
 
+  demoninator(x,y) {
+
+    if (x === y) return x;
+
+    if (x === '/') return y;
+
+    if (y === '/') return x;
+
+    console.log('UNDEFINED: ',x,y);
+
+  },
+
 /*  setMouseBoxPosition(x,y) {
 
     let stiffCordsInPx = that.getCords.final(x,y);
@@ -223,89 +236,117 @@ var that = {
     };
   },
 
-  getNextCord(x,y,directionX,directionY) {
-    //console.log(x,y,directionX,directionY);
+  getNextCord(xDestination,yDestination,directionX,directionY) {
 
-    let directions = [], rightValue, leftValue, upValue, downValue;
+    let prioIndex,
+    prioStep = 1,
+    prioStepPlus, prioStepMinus,
+    iPlus, iMinus,
+    prioArray = [],
+    prioritiesList = [
+      '--','/-','+-','+/','++','/+','-+','-/'
+    ];
 
-    if (directionX === 'right') {
-      rightValue = 3;
-      leftValue = 0;
-    } else
-    if (directionX === 'left') {
-      rightValue = 0;
-      leftValue = 3;
-    } else {
-      rightValue = 1.5;
-      leftValue = 1.5;
-    }
-    
+    if (xDestination === -0) xDestination = 0;
+    if (yDestination === -0) yDestination = 0;
 
-      /*right, down = order = [
-       right, down  == 1
-       right, --    == 2
-       --, down     == 2
-       left, down   == 3
-       right, up    == 3
-       --, up       == 4
-       left, --     == 4
-       left, up     == 5
-      ]
-      */
+    console.log(xDestination,yDestination);
 
-      directions.push({
-        x: x-1, y:y+1,
+    prioIndex = prioritiesList.indexOf(directionX+directionY);
+    iPlus = prioIndex;
+    iMinus = prioIndex;
 
-      }); //!! left, down
-      directions.push({x: x-1, y:y});   //!! left, --
-      directions.push({x: x-1, y:y-1}); //!! left, up
-      directions.push({x: x, y:y-1});   //!! --, up
-      directions.push({x: x, y:y+1});   //!! --, down
-      directions.push({x: x+1, y:y-1}); //!! right, up
-      directions.push({x: x+1, y:y+1}); //!! right, down
-      directions.push({x: x+1, y:y});   //!! right, --
+    prioArray.push(directionX+directionY)
 
-      //remove not allowed cords
-      //order based on priority, lower = better
+    do {
+      prioStep++;
+      iPlus++;
+      iMinus--;
+      prioStepPlus++;
+      prioStepMinus--;
+      if (iPlus > prioritiesList.length - 1) iPlus = 0;
+      if (iMinus === -1) iMinus = prioritiesList.length - 1;
+      prioArray.push(prioritiesList[iPlus]);
+      prioArray.push(prioritiesList[iMinus]);
+    } while (prioStep <= 4)
 
-      console.log(directions);
-      console.log(x,y,directionX,directionY);
+    prioArray.splice(-1,1);
 
-/*    if (directionX === 'right' && directionY === 'down') {
-      //newX =
-    }*/
-    //let newX = (directionX === 'right')
+    //prioArray.forEach(cords => {
+    for (var i = 0; i < prioArray.length; i++) {
+      let newCords = {
+        x: xDestination,
+        y: yDestination
+      }, x = prioArray[i].substr(0,1), y = prioArray[i].substr(1,1);
+
+      if (x === '+') {
+        newCords.x = xDestination+1;
+      } else
+      if (x === '-') {
+        newCords.x = xDestination-1;
+      }
+
+      if (y === '+') {
+        newCords.y = xDestination+1;
+      } else
+      if (y === '-') {
+        newCords.y = xDestination-1;
+      }
+
+      if (that.restricted.isCordAllowed(newCords.x,newCords.y)) {
+        //console.log(newCords);
+        return newCords;
+      }
+
+    };
+
+    console.log('NO CORDS?');
+
+    //});
+
   },
 
   calculatePathNew(from,to) {
 
-    let directionX, directionY;
+    let directionX = '/', directionY = '/';
 
     //console.log(from,to);
 
-    that.update.playerBoxPosition(to.x,to.y);
+    //that.update.playerBoxPosition(to.x,to.y);
 
-    //directionX = from.x < to.x ? 'right' : 'left';
+    directionX = from.x < to.x ? '+' : '-';
+    directionY = from.y < to.y ? '+' : '-';
 
-    if (from.x < to.x) {
-      directionX = 'right';
+/*    if (from.x < to.x) {
+      directionX = '+';
     } else
     if (from.x > to.x) {
-      directionX = 'left';
+      directionX = '-';
     } else {
-      directionX = '--';
+      directionX = '/';
     }
 
     if (from.y < to.y) {
-      directionY = 'down';
+      directionY = '+';
     } else
     if (from.y > to.y) {
-      directionY = 'up';
+      directionY = '-';
     } else {
-      directionY = '--';
-    }
+      directionY = '/';
+    }*/
 
-    that.getNextCord(from.x,from.y,directionX,directionY);
+    that.update.playerBoxPosition(to.x,to.y);
+
+    let nextCords = that.getNextCord(from.x,from.y,directionX,directionY);
+
+    console.log(
+      nextCords
+    );
+
+/*    that.update.playerBoxPosition(
+      nextCords.x,
+      nextCords.y
+    );*/
 
     //directionY = from.y < to.y ? 'down' : 'up';
 
