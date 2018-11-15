@@ -16,14 +16,14 @@ import './vendor/o2/src/o.js'; //DOM selector, debounce, throttle, element in vi
 /**/
 
 //Components
-import {area} from './components/area.js';
+import {canvas} from './components/canvas.js';
 //import {accordion} from './components/accordion.js';
 //import {menu} from './components/menu.js';
 //import {gdprBanner} from './components/gdprBanner.js';
 
 global.project = {
 
-  area,
+  canvas,
 
   init: {
 
@@ -45,7 +45,7 @@ global.project = {
       let self = global.project;
 
       self.globalevents();
-      self.area.init();
+      self.canvas.init();
       //self.gdprBanner.init();
       //self.menu.init();
       //self.accordion.init();
@@ -56,7 +56,7 @@ global.project = {
   globalevents() {
 
     //Global events
-    o._debug();
+    //o._debug();
 
   }
 

@@ -1,3 +1,15 @@
+body {
+  background-color: lightblue;
+}
+
+#canvas {
+  display: block;
+  position: relative;
+  width: 630px;
+  height: 450px;
+  background-color: orange;
+}
+
 main > .area {
   display: block;
   position: relative;

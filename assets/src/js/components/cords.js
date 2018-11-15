@@ -16,8 +16,7 @@ module.exports.getCords = (that) => {
       return {
         smallX: smallCords.smallX,
         smallY: smallCords.smallY
-      }
-
+      };
     },
 
     final(x,y) {
@@ -27,8 +26,7 @@ module.exports.getCords = (that) => {
         smallY: smallCords.smallY,
         stiffX: smallCords.smallX * that.mouseBox.width,
         stiffY: smallCords.smallY * that.mouseBox.height
-      }
-
+      };
     }
 
   }

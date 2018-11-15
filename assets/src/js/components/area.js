@@ -175,24 +175,12 @@ var that = {
       if (count >= mean && secondaryArray.length > 0) {
         count = 1;
         moveTo.secondary = secondaryArray.shift()
-        //console.log(secondaryArray.shift());
-        //secondaryArray
       }
-
-      //console.log(moveTo);
 
       mergedMovement.push({
         a: moveTo.primary,
         b: moveTo.secondary
       });
-
-/*      setTimeout(() => {
-        console.log('set');
-        that.setPlayerPosition(
-          moveTo.primary * that.mouseBox.width,
-          moveTo.secondary * that.mouseBox.width
-        );
-      }, idx * 100)*/
 
     });
 
@@ -227,29 +215,7 @@ var that = {
     that.calculatePath(
       axises.xAxis,
       axises.yAxis
-    )
-
-    return;
-
-    let xAxis = axises.xAxis,
-    yAxis = axises.yAxis;
-
-    xAxis.map((x, idx) => {
-      //if (idx === 0) {
-      //console.log(x, idx);
-
-      that.setPlayerPosition(
-        x * that.mouseBox.width,
-        0
-      );
-      //((idx) => {
-/*        setInterval(() => {
-          that.setPlayerPosition(x, 0)
-        }, idx * 250)*/
-      //});
-      //setInt
-      //}
-    });
+    );
 
   },
 
