@@ -58,7 +58,9 @@ var that = {
       {x:1,y:1},
       {x:1,y:2},
       {x:1,y:3},
+      {x:3,y:3},
       {x:4,y:3},
+      {x:4,y:4},
       {x:4,y:5},
       {x:4,y:6},
       {x:3,y:6},
@@ -247,14 +249,16 @@ var that = {
       '--','/-','+-','+/','++','/+','-+','-/'
     ];
 
-    if (xDestination === -0) xDestination = 0;
-    if (yDestination === -0) yDestination = 0;
+    if (xDestination === -0) xDestination = 0; // TODO:
+    if (yDestination === -0) yDestination = 0; // TODO:
 
-    console.log(xDestination,yDestination);
+    console.log(xDestination,yDestination,directionX,directionY);
 
     prioIndex = prioritiesList.indexOf(directionX+directionY);
     iPlus = prioIndex;
     iMinus = prioIndex;
+
+    console.log('directionX+directionY: ',directionX+directionY);
 
     prioArray.push(directionX+directionY)
 
@@ -272,26 +276,38 @@ var that = {
 
     prioArray.splice(-1,1);
 
+    console.log(prioArray);
     //prioArray.forEach(cords => {
     for (var i = 0; i < prioArray.length; i++) {
+
       let newCords = {
         x: xDestination,
         y: yDestination
-      }, x = prioArray[i].substr(0,1), y = prioArray[i].substr(1,1);
+      },
+      x = prioArray[i].substr(0,1),
+      y = prioArray[i].substr(1,1);
+
+      console.log(newCords);
 
       if (x === '+') {
         newCords.x = xDestination+1;
       } else
       if (x === '-') {
         newCords.x = xDestination-1;
+      } else {
+        console.log('////////');
       }
 
       if (y === '+') {
-        newCords.y = xDestination+1;
+        newCords.y = yDestination+1;
       } else
       if (y === '-') {
-        newCords.y = xDestination-1;
+        newCords.y = yDestination-1;
+      } else {
+        console.log('////////');
       }
+
+      console.log(newCords);
 
       if (that.restricted.isCordAllowed(newCords.x,newCords.y)) {
         //console.log(newCords);
@@ -310,43 +326,37 @@ var that = {
 
     let directionX = '/', directionY = '/';
 
+    //let directionX, directionY;
+
     //console.log(from,to);
 
-    //that.update.playerBoxPosition(to.x,to.y);
-
-    directionX = from.x < to.x ? '+' : '-';
-    directionY = from.y < to.y ? '+' : '-';
-
-/*    if (from.x < to.x) {
-      directionX = '+';
+    if (from.x < to.x) {
+      directionX = '+'
     } else
     if (from.x > to.x) {
-      directionX = '-';
-    } else {
-      directionX = '/';
+      directionX = '-'
     }
 
     if (from.y < to.y) {
-      directionY = '+';
+      directionY = '+'
     } else
     if (from.y > to.y) {
-      directionY = '-';
-    } else {
-      directionY = '/';
-    }*/
+      directionY = '-'
+    }
 
-    that.update.playerBoxPosition(to.x,to.y);
+/*    directionX = from.x < to.x ? '+' : '-';
+    directionY = from.y < to.y ? '+' : '-';*/
 
     let nextCords = that.getNextCord(from.x,from.y,directionX,directionY);
 
-    console.log(
-      nextCords
-    );
+/*    console.log(
+      'nextCords: ', nextCords
+    );*/
 
-/*    that.update.playerBoxPosition(
+    that.update.playerBoxPosition(
       nextCords.x,
       nextCords.y
-    );*/
+    );
 
     //directionY = from.y < to.y ? 'down' : 'up';
 
@@ -483,10 +493,11 @@ var that = {
 
   movePlayerFromStartToEnd(axises) {
 
-    let calculatedPath = that.calculatePathNew(
+/*    let calculatedPath = that.calculatePathNew(
       axises.xAxis,
       axises.yAxis
     );
+*/
 
 /*    that.movePlayerAlongPathStepByStep(
       calculatedPath.mergedMovement,
@@ -543,16 +554,23 @@ var that = {
         e.clientY - defs.area.y
       );
 
-      that.calculatePathNew(
-        {
+      console.log(
+        'from',{
           x: that.defaults.playerPos.smallX,
           y: that.defaults.playerPos.smallY
-        },
-        {
+        },'to',{
           x: that.defaults.clickPos.smallX,
           y: that.defaults.clickPos.smallY
         }
       );
+
+      that.calculatePathNew({
+        x: that.defaults.playerPos.smallX,
+        y: that.defaults.playerPos.smallY
+      },{
+        x: that.defaults.clickPos.smallX,
+        y: that.defaults.clickPos.smallY
+      });
 
 /*      let axisRange = that.getCordsFromStartToEnd(
         originalPos, {
