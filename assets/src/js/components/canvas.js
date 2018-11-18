@@ -1,58 +1,133 @@
-import {getCords} from './cords.js';
+//cordinates functions
+import {getCords} from './cords/getCords.js';
+import {getNextCord} from './cords/getNextCord.js';
+
+//path calculations
+import {calculatePathDirection} from './paths/calculatePathDirection.js';
+
+//restricted areas functions
+import {isCordAllowed} from './restricted/isCordAllowed.js';
+import {isCordSameAsNow} from './restricted/isCordSameAsNow.js';
+
+//paint actions
+import {grid} from './paint/grid.js';
+import {mousePointer} from './paint/mousePointer.js';
+import {restrictedAreas} from './paint/restrictedAreas.js';
+import {playerBox} from './paint/playerBox.js';
+import {clearScreen} from './paint/clearScreen.js';
+import {updateCanvas} from './paint/updateCanvas.js';
+
+//update actions
+import {areaViewportPosition} from './update/areaViewportPosition.js';
+import {mousePointerPosition} from './update/mousePointerPosition.js';
+import {clickPosition} from './update/clickPosition.js';
+import {playerBoxPosition} from './update/playerBoxPosition.js';
+
+//utilities
+import {fixCanvasSize} from './utils/fixCanvasSize.js';
+import {createRandomRestrictedArea} from './utils/createRandomRestrictedArea.js';
+
+const BOXSIZE = 25;
+const BOXWIDTH = 700;
+const BOXHEIGHT = 500;
 
 var that = {
 
-  elem: {
-    area: o('#canvas', 1),
-    mouseBox: o('.area .mouseBox', 1),
-    mousePointer: o('.area .mousePointer', 1),
-    player: o('.area .player', 1),
-    restrictedBoxes: o('.area .restrictedBoxes', 1)
+  imports() {
+    this.cords.getCords = getCords(that);
+    this.cords.getNextCord = getNextCord;
+
+    this.paths.calculatePathDirection = calculatePathDirection;
+
+    this.restricted.isCordAllowed = isCordAllowed;
+    that.restricted.isCordSameAsNow = isCordSameAsNow;
+
+    this.paint.grid = grid;
+    this.paint.mousePointer = mousePointer;
+    this.paint.restrictedAreas = restrictedAreas;
+    this.paint.playerBox = playerBox;
+    this.paint.clearScreen = clearScreen;
+    this.paint.updateCanvas = updateCanvas;
+
+    this.update.areaViewportPosition = areaViewportPosition;
+    this.update.mousePointerPosition = mousePointerPosition;
+    this.update.clickPosition = clickPosition;
+    this.update.playerBoxPosition = playerBoxPosition;
+
+    this.utils.fixCanvasSize = fixCanvasSize;
+    this.utils.createRandomRestrictedArea = createRandomRestrictedArea;
   },
 
-  canvas: document.getElementById('canvas').getContext('2d'),
+  CONSTANTS: {
 
-  mouseBox: {
-    width: 45,
-    height: 45,
-    halfWidth: 22.5,
-    halfHeight: 22.5
-  },
-
-  defaults: {
-
-    positionsX: 630 / 45,
-    positionsY: 450 / 45,
+    positionsXsmallTotal: BOXWIDTH / BOXSIZE,
+    positionsYsmallTotal: BOXHEIGHT / BOXSIZE,
 
     area: {
-      width: 630,
-      height: 450,
+      widthPX: BOXWIDTH,
+      heightPX: BOXHEIGHT,
       x: null,
       y: null
     },
 
+    mouseBox: {
+      width: BOXSIZE,
+      height: BOXSIZE,
+      halfWidth: BOXSIZE / 2,
+      halfHeight: BOXSIZE / 2
+    },
+
+    cordPrioritiesList: [
+      '--','/-','+-','+/','++','/+','-+','-/'
+    ]
+
+  },
+
+  elem: {
+    area: o('#canvas', 1),
+  },
+
+  canvas: document.getElementById('canvas').getContext('2d'),
+
+  positions: {
+
     mousePointer: {
-      x: 0,
-      y: 0
+      PX: {
+        x: 0,
+        y: 0
+      }
     },
 
     clickPos: {
-      x: 0,
-      y: 0,
-      smallX: 0,
-      smallY: 0
+      PX: {
+        x: 0,
+        y: 0
+      },
+      CORD: {
+        x: 0,
+        y: 0
+      }
     },
 
     playerPos: {
-      x: 0,
-      y: 0,
-      smallX: 0,
-      smallY: 0
+      FACING: '+0',
+      PX: {
+        x: 0,
+        y: 0
+      },
+      CORD: {
+        x: 0,
+        y: 0
+      }
     }
 
   },
 
   restricted: {
+
+    dynamic: false,
+
+    dynamicCords: [],
 
     cords: [
       {x:1,y:1},
@@ -65,537 +140,169 @@ var that = {
       {x:4,y:6},
       {x:3,y:6},
       {x:2,y:6}
-    ],
-
-    isCordAllowed(x,y) {
-      if (x > that.defaults.positionsX || x < 0) return false;
-      if (y > that.defaults.positionsY || y < 0) return false;
-      return !that.restricted.cords.find(xy => {
-        return (xy.x === x && xy.y === y)
-      });
-    }
+    ]
 
   },
 
-  utils: {
+  utils: {},
 
-    fixCanvasSize() {
-      var canvases = document.getElementsByTagName("canvas");
-      for (var i=0; i<canvases.length; i++) {
-        let canvas = canvases[i];
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-      }
-    }
+  paths: {},
 
-  },
-
-  update: {
-
-    areaViewportPosition() {
-      let XY = that.elem.area.getBoundingClientRect();
-      that.defaults.area.x = XY.x;
-      that.defaults.area.y = XY.y;
-    },
-
-    mousePointerPosition(x,y) {
-      that.defaults.mousePointer.x = x;
-      that.defaults.mousePointer.y = y;
-    },
-
-    clickPosition(x,y) {
-
-      let clickPos = that.defaults.clickPos;
-
-      clickPos.x = x;
-      clickPos.y = y;
-
-      console.log();
-
-      let stiffCordsSmall = that.getCords.small(x,y);
-
-      clickPos.smallX = stiffCordsSmall.smallX;
-      clickPos.smallY = stiffCordsSmall.smallY;
-
-    },
-
-    playerBoxPosition(x,y) {
-
-      x = x * that.mouseBox.width;
-      y = y * that.mouseBox.height;
-
-      let stiffCordsInPx = that.getCords.final(x,y);
-
-      if (!that.restricted.isCordAllowed(
-        stiffCordsInPx.smallX, stiffCordsInPx.smallY)
-      ) return;
-
-      that.defaults.playerPos = {
-        x: stiffCordsInPx.stiffX,
-        y: stiffCordsInPx.stiffY,
-        smallX: stiffCordsInPx.smallX,
-        smallY: stiffCordsInPx.smallY
-      };
-
-    },
-
-  },
+  update: {},
 
   paint: {
 
-    grid() {
-      that.canvas.beginPath();
-      for (let i = 1; i <= 13; i++) {
-        that.canvas.moveTo(i * 45,0);
-        that.canvas.lineTo(i * 45,450);
-        that.canvas.strokeStyle="#ffd587";
-        that.canvas.stroke();
-        if (i <= 9) {
-          that.canvas.moveTo(0, i * 45);
-          that.canvas.lineTo(630, i * 45);
-          that.canvas.stroke();
-        }
+    img: {
+      char: new Image(),
+      charInit() {
+        that.paint.img.char.src = 'assets/src/img/char_36_419.gif';
       }
-    },
+/*      char: new Image(),
+      charInit() {
+        that.paint.img.char.src = 'assets/src/img/char_68_68.png';
+      }*/
+    }
 
-    mousePointer() {
-      that.canvas.beginPath();
-      that.canvas.arc(
-        that.defaults.mousePointer.x,
-        that.defaults.mousePointer.y,
-        10,0,2*Math.PI
+  },
+
+  cords: {},
+
+  movePlayerFromStartToEnd(from,to,MAXSTEPS=20) {
+
+    that.restricted.dynamic = true;
+    that.restricted.dynamicCords = that.restricted.cords.slice(0, that.restricted.cords.length);
+
+    let previousSteps = [], i, nextCords, moveTimer, previousDestination = from, pathDirection;
+
+    for (i = 0; i < MAXSTEPS; i++) {
+
+      that.restricted.dynamicCords.push(previousDestination);
+
+      pathDirection = that.paths.calculatePathDirection(that,previousDestination,to);
+
+      nextCords = that.cords.getNextCord(that,
+        previousDestination.x,previousDestination.y,
+        pathDirection.directionX,
+        pathDirection.directionY
       );
-      that.canvas.strokeStyle = "#000";
-      that.canvas.stroke();
+
+      //nextCords = that.paths.calculatePathDirection(that,previousDestination,to);
+
+      previousDestination = nextCords;
+
+      previousSteps.push(nextCords);
+
+      if (nextCords.x == to.x && nextCords.y == to.y) {
+        break;
+      }
+
+    }
+
+    i = 0;
+    moveTimer = setInterval(() => {
+
+      that.update.playerBoxPosition(that,
+        previousSteps[i].x,
+        previousSteps[i].y
+      );
+
+      if (i === previousSteps.length - 1) {
+        clearInterval(moveTimer);
+        that.restricted.dynamic = false;
+      }
+
+      i++;
+
+    }, 75);
+
+  },
+
+  events: {
+
+    updateInterface() {
+      setInterval(() => {
+        requestAnimationFrame(() => {
+          that.paint.updateCanvas(that, BOXSIZE);
+        });
+      }, 20);
     },
 
-    restrictedAreas() {
-      that.restricted.cords.map(xy => {
-        that.canvas.fillStyle = 'red';
-        that.canvas.fillRect(
-          xy.x * that.mouseBox.width,
-          xy.y * that.mouseBox.height,
-          45,45
+    updateMousePointerPosition() {
+      that.elem.area.addEventListener('mousemove', function(e) {
+        requestAnimationFrame(() => {
+          that.update.mousePointerPosition(that,
+            e.clientX - that.CONSTANTS.area.x,
+            e.clientY - that.CONSTANTS.area.y
+          );
+        });
+      });
+    },
+
+    click() {
+      that.elem.area.addEventListener('click', function(e) {
+
+        let originalPos, allowed, sameCordAsBefore;
+
+        originalPos = JSON.parse(JSON.stringify({
+          x: that.positions.clickPos.CORD.x,
+          y: that.positions.clickPos.CORD.y
+        }));
+
+        that.update.clickPosition(that,
+          e.clientX - that.CONSTANTS.area.x,
+          e.clientY - that.CONSTANTS.area.y
         );
-      });
-    },
 
-    playerBox() {
-      that.canvas.fillStyle = '#fff';
-      that.canvas.fillRect(
-        that.defaults.playerPos.x,
-        that.defaults.playerPos.y,
-        45,45
-      );
-    },
-
-    clearScreen() {
-      that.canvas.clearRect(0, 0, that.defaults.area.width, that.defaults.area.height);
-    },
-
-    updateScreen() {
-      that.paint.clearScreen();
-      that.paint.grid();
-      that.paint.restrictedAreas();
-      that.paint.playerBox();
-      that.paint.mousePointer();
-    }
-
-  },
-
-  demoninator(x,y) {
-
-    if (x === y) return x;
-
-    if (x === '/') return y;
-
-    if (y === '/') return x;
-
-    console.log('UNDEFINED: ',x,y);
-
-  },
-
-/*  setMouseBoxPosition(x,y) {
-
-    let stiffCordsInPx = that.getCords.final(x,y);
-
-    if (!that.restricted.isCordAllowed(
-      stiffCordsInPx.smallX, stiffCordsInPx.smallY)
-    ) return;
-
-    that.elem.mouseBox.style.cssText = `
-      transform: translate3d(${stiffCordsInPx.stiffX}px, ${stiffCordsInPx.stiffY}px, 0px);
-    `;
-
-  },*/
-
-  getCordsFromStartToEnd(startCords,endCords) {
-    let xAxis = that.rangeBetweenNumber(startCords.smallX, endCords.smallX),
-    yAxis = that.rangeBetweenNumber(startCords.smallY, endCords.smallY);
-    return {
-      xAxis,
-      yAxis
-    };
-  },
-
-  getNextCord(xDestination,yDestination,directionX,directionY) {
-
-    let prioIndex,
-    prioStep = 1,
-    prioStepPlus, prioStepMinus,
-    iPlus, iMinus,
-    prioArray = [],
-    prioritiesList = [
-      '--','/-','+-','+/','++','/+','-+','-/'
-    ];
-
-    if (xDestination === -0) xDestination = 0; // TODO:
-    if (yDestination === -0) yDestination = 0; // TODO:
-
-    console.log(xDestination,yDestination,directionX,directionY);
-
-    prioIndex = prioritiesList.indexOf(directionX+directionY);
-    iPlus = prioIndex;
-    iMinus = prioIndex;
-
-    console.log('directionX+directionY: ',directionX+directionY);
-
-    prioArray.push(directionX+directionY)
-
-    do {
-      prioStep++;
-      iPlus++;
-      iMinus--;
-      prioStepPlus++;
-      prioStepMinus--;
-      if (iPlus > prioritiesList.length - 1) iPlus = 0;
-      if (iMinus === -1) iMinus = prioritiesList.length - 1;
-      prioArray.push(prioritiesList[iPlus]);
-      prioArray.push(prioritiesList[iMinus]);
-    } while (prioStep <= 4)
-
-    prioArray.splice(-1,1);
-
-    console.log(prioArray);
-    //prioArray.forEach(cords => {
-    for (var i = 0; i < prioArray.length; i++) {
-
-      let newCords = {
-        x: xDestination,
-        y: yDestination
-      },
-      x = prioArray[i].substr(0,1),
-      y = prioArray[i].substr(1,1);
-
-      console.log(newCords);
-
-      if (x === '+') {
-        newCords.x = xDestination+1;
-      } else
-      if (x === '-') {
-        newCords.x = xDestination-1;
-      } else {
-        console.log('////////');
-      }
-
-      if (y === '+') {
-        newCords.y = yDestination+1;
-      } else
-      if (y === '-') {
-        newCords.y = yDestination-1;
-      } else {
-        console.log('////////');
-      }
-
-      console.log(newCords);
-
-      if (that.restricted.isCordAllowed(newCords.x,newCords.y)) {
-        //console.log(newCords);
-        return newCords;
-      }
-
-    };
-
-    console.log('NO CORDS?');
-
-    //});
-
-  },
-
-  calculatePathNew(from,to) {
-
-    let directionX = '/', directionY = '/';
-
-    //let directionX, directionY;
-
-    //console.log(from,to);
-
-    if (from.x < to.x) {
-      directionX = '+'
-    } else
-    if (from.x > to.x) {
-      directionX = '-'
-    }
-
-    if (from.y < to.y) {
-      directionY = '+'
-    } else
-    if (from.y > to.y) {
-      directionY = '-'
-    }
-
-/*    directionX = from.x < to.x ? '+' : '-';
-    directionY = from.y < to.y ? '+' : '-';*/
-
-    let nextCords = that.getNextCord(from.x,from.y,directionX,directionY);
-
-/*    console.log(
-      'nextCords: ', nextCords
-    );*/
-
-    that.update.playerBoxPosition(
-      nextCords.x,
-      nextCords.y
-    );
-
-    //directionY = from.y < to.y ? 'down' : 'up';
-
-    //console.log(from.y, to.y, directionX,directionY);
-
-    //that.getNextCord(x,to.y,directionX,directionY);
-
-/*
-
-    let path = [], fromX, toX;
-
-
-
-    if (directionX === 'left') {
-
-      for (let i = from.x; i >= to.x; i--) {
-        console.log(i);
-      }
-
-    } else {
-
-      for (let x = from.x; x <= to.x; x++) {
-        //check if cord is ok
-        let accepted = that.restricted.isCordAllowed(x, to.y);
-
-        if (accepted) {
-          path.push({
-            x: x,
-            y: to.y
-          })
-        } else {
-
-          that.getNextCord(x,to.y,directionX,directionY);
-
-        }
-
-      }
-
-    }
-
-    */
-
-    //console.log(path, directionX, directionY);
-
-  /*  let currentAxis = that.defaults.playerPos
-    console.log(currentAxis,xAxis,yAxis);*/
-  },
-
-  calculatePath(xAxis,yAxis) {
-
-    let xLargest = true,
-    meanDiff,
-    primaryArray,
-    secondaryArray,
-    mergedMovement = [],
-    moveTo = {},
-    count = 1,
-    arrA,
-    arrB;
-
-    xLargest = !(xAxis.length < yAxis.length);
-
-    if (xAxis.length < yAxis.length) {
-      arrA = yAxis;
-      arrB = xAxis;
-    } else {
-      arrA = xAxis;
-      arrB = yAxis;
-    }
-
-    meanDiff = Math.round(arrA.length / arrB.length);
-    primaryArray = arrA;
-    secondaryArray = arrB;
-
-    moveTo.secondary = secondaryArray[0];
-
-    primaryArray.map((prim, idx) => {
-
-      count++;
-
-      moveTo.primary = prim;
-      if (count >= meanDiff && secondaryArray.length > 0) {
-        count = 1;
-        moveTo.secondary = secondaryArray.shift()
-      }
-
-      console.log(moveTo, that.restricted.isCordAllowed(
-        moveTo.primary, moveTo.secondary
-      ));
-
-      //isCordAllowed
-
-      mergedMovement.push({
-        a: moveTo.primary,
-        b: moveTo.secondary
-      });
-
-    });
-
-    return {
-      mergedMovement,
-      xLargest
-    };
-
-    //that.movePlayerAlongPathStepByStep(mergedMovement, xLargest);
-
-    //console.log(xLargest ? 'x,y' : 'y,x', mergedMovement);
-
-/*    console.log(
-      meanDiff,
-      'primaryArray.length:' + primaryArray.length,
-      'secondaryArray.length:' + secondaryArray.length,
-      'xAxis' + xAxis,
-      'yAxis' + yAxis,
-      secondaryArray
-    );*/
-
-  },
-
-  movePlayerAlongPathStepByStep(axises, xLargest) {
-
-    axises.map((cords, i) => {
-
-      setTimeout(() => {
-        that.update.playerBoxPosition(
-          xLargest ? cords.a : cords.b,
-          xLargest ? cords.b : cords.a,
+        allowed = that.restricted.isCordAllowed(that,
+          that.positions.clickPos.CORD.x,
+          that.positions.clickPos.CORD.y
         );
-      }, i * 100);
 
-    });
-
-  },
-
-  movePlayerFromStartToEnd(axises) {
-
-/*    let calculatedPath = that.calculatePathNew(
-      axises.xAxis,
-      axises.yAxis
-    );
-*/
-
-/*    that.movePlayerAlongPathStepByStep(
-      calculatedPath.mergedMovement,
-      calculatedPath.xLargest
-    );*/
-
-  },
-
-  rangeBetweenNumber(lowEnd, highEnd) {
-    let list = [], from = lowEnd, to = highEnd, reverseDirection = false;
-
-    if (lowEnd > highEnd) {
-      from = highEnd;
-      to = lowEnd;
-      reverseDirection = true;
-    }
-
-    for (let i = from; i <= to; i++) {
-      list.push(i);
-    }
-
-    if (reverseDirection) list = list.reverse();
-    return list
-  },
-
-  events() {
-
-    setInterval(() => {
-      requestAnimationFrame(() => {
-        that.paint.updateScreen();
-      });
-    }, 10);
-
-    this.elem.area.addEventListener('mousemove', function(e) {
-      requestAnimationFrame(() => {
-        that.update.mousePointerPosition(
-          e.clientX - that.defaults.area.x,
-          e.clientY - that.defaults.area.y
+        sameCordAsBefore = that.restricted.isCordSameAsNow(
+          that, that.positions.clickPos.CORD, originalPos
         );
-      });
-    });
 
-    this.elem.area.addEventListener('click', function(e) {
+        if (allowed && !sameCordAsBefore) {
 
-      let defs = that.defaults;
+          console.log(
+            'from',{
+              x: that.positions.playerPos.CORD.x,
+              y: that.positions.playerPos.CORD.y
+            },'to',{
+              x: that.positions.clickPos.CORD.x,
+              y: that.positions.clickPos.CORD.y
+            }
+          );
 
-      let originalPos = JSON.parse(JSON.stringify({
-        smallX: defs.clickPos.smallX,
-        smallY: defs.clickPos.smallY
-      }));
+          that.movePlayerFromStartToEnd({
+            x: that.positions.playerPos.CORD.x,
+            y: that.positions.playerPos.CORD.y
+          },{
+            x: that.positions.clickPos.CORD.x,
+            y: that.positions.clickPos.CORD.y
+          });
 
-      that.update.clickPosition(
-        e.clientX - defs.area.x,
-        e.clientY - defs.area.y
-      );
-
-      console.log(
-        'from',{
-          x: that.defaults.playerPos.smallX,
-          y: that.defaults.playerPos.smallY
-        },'to',{
-          x: that.defaults.clickPos.smallX,
-          y: that.defaults.clickPos.smallY
         }
-      );
 
-      that.calculatePathNew({
-        x: that.defaults.playerPos.smallX,
-        y: that.defaults.playerPos.smallY
-      },{
-        x: that.defaults.clickPos.smallX,
-        y: that.defaults.clickPos.smallY
       });
+    },
 
-/*      let axisRange = that.getCordsFromStartToEnd(
-        originalPos, {
-          smallX: defs.clickPos.smallX,
-          smallY: defs.clickPos.smallY,
-        }
-      );
-
-      that.movePlayerFromStartToEnd(axisRange);*/
-
-      //that.setMouseBoxPosition(defs.clickPos.x,defs.clickPos.y);
-
-    });
+    init() {
+      that.events.updateInterface();
+      that.events.updateMousePointerPosition();
+      that.events.click();
+    }
 
   },
 
   init() {
-
-    that.utils.fixCanvasSize();
-
-    this.getCords = getCords(this);
-    this.events();
-    this.update.areaViewportPosition();
-    //this.areaViewportPosition();
-    this.paint.updateScreen();
+    this.imports();
+    this.utils.fixCanvasSize();
+    this.paint.img.charInit();
+    this.events.init();
+    this.update.areaViewportPosition(that);
+    //this.utils.createRandomRestrictedArea();
+    //this.paint.updateCanvas(that, BOXSIZE);
   }
 
 };
