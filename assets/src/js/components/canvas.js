@@ -13,7 +13,9 @@ import {isCordSameAsNow} from './restricted/isCordSameAsNow.js';
 import {grid} from './paint/grid.js';
 import {mousePointer} from './paint/mousePointer.js';
 import {restrictedAreas} from './paint/restrictedAreas.js';
-import {playerBox} from './paint/playerBox.js';
+import {playerBox} from './paint/player/playerBox.js';
+import {playerStillFacing} from './paint/player/playerStillFacing.js';
+import {playerMoving} from './paint/player/playerMoving.js';
 import {clearScreen} from './paint/clearScreen.js';
 import {updateCanvas} from './paint/updateCanvas.js';
 
@@ -22,12 +24,13 @@ import {areaViewportPosition} from './update/areaViewportPosition.js';
 import {mousePointerPosition} from './update/mousePointerPosition.js';
 import {clickPosition} from './update/clickPosition.js';
 import {playerBoxPosition} from './update/playerBoxPosition.js';
+import {playerFacing} from './update/playerFacing.js';
 
 //utilities
 import {fixCanvasSize} from './utils/fixCanvasSize.js';
 import {createRandomRestrictedArea} from './utils/createRandomRestrictedArea.js';
 
-const BOXSIZE = 25;
+const BOXSIZE = 25 / 1;
 const BOXWIDTH = 700;
 const BOXHEIGHT = 500;
 
@@ -46,6 +49,8 @@ var that = {
     this.paint.mousePointer = mousePointer;
     this.paint.restrictedAreas = restrictedAreas;
     this.paint.playerBox = playerBox;
+    this.paint.playerStillFacing = playerStillFacing;
+    this.paint.playerMoving = playerMoving;
     this.paint.clearScreen = clearScreen;
     this.paint.updateCanvas = updateCanvas;
 
@@ -53,6 +58,7 @@ var that = {
     this.update.mousePointerPosition = mousePointerPosition;
     this.update.clickPosition = clickPosition;
     this.update.playerBoxPosition = playerBoxPosition;
+    this.update.playerFacing = playerFacing;
 
     this.utils.fixCanvasSize = fixCanvasSize;
     this.utils.createRandomRestrictedArea = createRandomRestrictedArea;
@@ -78,7 +84,11 @@ var that = {
     },
 
     cordPrioritiesList: [
-      '--','/-','+-','+/','++','/+','-+','-/'
+      '+-','+/','++','/+','-+','-/','--','/-'
+    ],
+
+    cordPrioritiesListSmall: [
+      '+-','+/','++','-+','-/','--'
     ]
 
   },
@@ -88,6 +98,23 @@ var that = {
   },
 
   canvas: document.getElementById('canvas').getContext('2d'),
+
+  player: {
+    state: 0,
+
+    animation: {
+      startTime: null,
+      startMoving() {
+        that.player.state = 1;
+        that.player.animation.startTime = Date.now();
+      },
+      stopMoving() {
+        that.player.state = 0;
+      }
+    }
+    //0 = still
+    //1 = moving
+  },
 
   positions: {
 
@@ -110,7 +137,12 @@ var that = {
     },
 
     playerPos: {
-      FACING: '+0',
+      previousImgStep: 0,
+      moveCounter: 0,
+      FACING: {
+        x: '+',
+        y: '/'
+      },
       PX: {
         x: 0,
         y: 0
@@ -153,67 +185,80 @@ var that = {
   paint: {
 
     img: {
-      char: new Image(),
-      charInit() {
-        that.paint.img.char.src = 'assets/src/img/char_36_419.gif';
+      charStill: new Image(),
+      charStillInit() {
+        that.paint.img.charStill.src = 'assets/src/img/char_36_419.gif';
+      },
+      charMovementAll: new Image(),
+      charMovementAllInit() {
+        that.paint.img.charMovementAll.src = 'assets/src/img/complete_movement.gif';
       }
-/*      char: new Image(),
-      charInit() {
-        that.paint.img.char.src = 'assets/src/img/char_68_68.png';
-      }*/
     }
 
   },
 
   cords: {},
 
-  movePlayerFromStartToEnd(from,to,MAXSTEPS=20) {
+  movement: {
 
-    that.restricted.dynamic = true;
-    that.restricted.dynamicCords = that.restricted.cords.slice(0, that.restricted.cords.length);
+    movePlayerFromStartToEnd(from,to,MAXSTEPS=20) {
 
-    let previousSteps = [], i, nextCords, moveTimer, previousDestination = from, pathDirection;
+      if (that.player.state !== 0) return;
 
-    for (i = 0; i < MAXSTEPS; i++) {
+      that.restricted.dynamic = true;
+      that.restricted.dynamicCords = that.restricted.cords.slice(0, that.restricted.cords.length);
 
-      that.restricted.dynamicCords.push(previousDestination);
+      let previousSteps = [], i, nextCords, moveTimer, previousDestination = from, pathDirection;
 
-      pathDirection = that.paths.calculatePathDirection(that,previousDestination,to);
+      for (i = 0; i < MAXSTEPS; i++) {
 
-      nextCords = that.cords.getNextCord(that,
-        previousDestination.x,previousDestination.y,
-        pathDirection.directionX,
-        pathDirection.directionY
-      );
+        that.restricted.dynamicCords.push(previousDestination);
 
-      //nextCords = that.paths.calculatePathDirection(that,previousDestination,to);
+        pathDirection = that.paths.calculatePathDirection(that,previousDestination,to);
 
-      previousDestination = nextCords;
+        nextCords = that.cords.getNextCord(that,
+          previousDestination.x,previousDestination.y,
+          pathDirection.directionX,
+          pathDirection.directionY
+        );
 
-      previousSteps.push(nextCords);
+        previousDestination = nextCords;
 
-      if (nextCords.x == to.x && nextCords.y == to.y) {
-        break;
+        previousSteps.push({
+          nextCords: nextCords,
+          pathDirection: pathDirection
+        });
+
+        if (nextCords.x == to.x && nextCords.y == to.y) {
+          break;
+        }
+
       }
+
+      i = 0;
+
+      that.player.animation.startMoving();
+
+      moveTimer = setInterval(() => {
+
+        that.update.playerBoxPosition(that,
+          previousSteps[i].nextCords.x,
+          previousSteps[i].nextCords.y
+        );
+
+        that.update.playerFacing(that,previousSteps[i].pathDirection);
+
+        if (i === previousSteps.length - 1) {
+          clearInterval(moveTimer);
+          that.player.animation.stopMoving();
+          that.restricted.dynamic = false;
+        }
+
+        i++;
+
+      }, 150);
 
     }
-
-    i = 0;
-    moveTimer = setInterval(() => {
-
-      that.update.playerBoxPosition(that,
-        previousSteps[i].x,
-        previousSteps[i].y
-      );
-
-      if (i === previousSteps.length - 1) {
-        clearInterval(moveTimer);
-        that.restricted.dynamic = false;
-      }
-
-      i++;
-
-    }, 75);
 
   },
 
@@ -224,7 +269,14 @@ var that = {
         requestAnimationFrame(() => {
           that.paint.updateCanvas(that, BOXSIZE);
         });
-      }, 20);
+      }, 16); //60~ fps
+
+/*      setInterval(() => {
+        requestAnimationFrame(() => {
+          that.paint.updateCanvas(that, BOXSIZE);
+        });
+      }, 50); //20~ fps*/
+
     },
 
     updateMousePointerPosition() {
@@ -264,23 +316,15 @@ var that = {
 
         if (allowed && !sameCordAsBefore) {
 
-          console.log(
-            'from',{
-              x: that.positions.playerPos.CORD.x,
-              y: that.positions.playerPos.CORD.y
-            },'to',{
-              x: that.positions.clickPos.CORD.x,
-              y: that.positions.clickPos.CORD.y
-            }
-          );
-
-          that.movePlayerFromStartToEnd({
+          let from = {
             x: that.positions.playerPos.CORD.x,
             y: that.positions.playerPos.CORD.y
-          },{
+          }, to = {
             x: that.positions.clickPos.CORD.x,
             y: that.positions.clickPos.CORD.y
-          });
+          };
+
+          that.movement.movePlayerFromStartToEnd(from, to);
 
         }
 
@@ -298,7 +342,8 @@ var that = {
   init() {
     this.imports();
     this.utils.fixCanvasSize();
-    this.paint.img.charInit();
+    this.paint.img.charStillInit();
+    this.paint.img.charMovementAllInit();
     this.events.init();
     this.update.areaViewportPosition(that);
     //this.utils.createRandomRestrictedArea();

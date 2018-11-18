@@ -5,7 +5,7 @@ module.exports.playerBoxPosition = (that,x,y) => {
 
   let calcCords = that.cords.getCords.final(x,y);
 
-  that.positions.playerPos = {
+  Object.assign(that.positions.playerPos, {
     PX: {
       x: calcCords.PX.x,
       y: calcCords.PX.y
@@ -14,6 +14,17 @@ module.exports.playerBoxPosition = (that,x,y) => {
       x: calcCords.CORD.x,
       y: calcCords.CORD.y
     }
-  };
+  });
+
+/*  that.positions.playerPos = {
+    PX: {
+      x: calcCords.PX.x,
+      y: calcCords.PX.y
+    },
+    CORD: {
+      x: calcCords.CORD.x,
+      y: calcCords.CORD.y
+    }
+  };*/
 
 };
