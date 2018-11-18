@@ -1,5 +1,5 @@
 $width: 700px;
-$height: 500px;
+$height: 425px;
 
 body {
   background-color: lightblue;
@@ -10,5 +10,6 @@ body {
   position: relative;
   width: $width;
   height: $height;
-  background-color: orange;
+  background-color: #b1b1b1;
+  cursor: none;
 }

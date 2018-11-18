@@ -60,7 +60,7 @@ module.exports.getNextCord = (that,xDestination,yDestination,directionX,directio
     if (x === '/' && y === '-') console.log('banned!');
 
     if (
-      that.restricted.isCordAllowed(that,newCords.x,newCords.y) &&
+      that.restricted.isCordRestricted(that,newCords.x,newCords.y) &&
       !(x === '/' && (y === '-' || y === '+')) //disable down and up movement
     ) {
       return newCords;

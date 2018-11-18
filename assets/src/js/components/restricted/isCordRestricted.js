@@ -1,4 +1,4 @@
-module.exports.isCordAllowed = (that,x,y) => {
+module.exports.isCordRestricted = (that,x,y) => {
   let activeArr = that.restricted.cords
   if (that.restricted.dynamic) {
     activeArr = that.restricted.dynamicCords;
