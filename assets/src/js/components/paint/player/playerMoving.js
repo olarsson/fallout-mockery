@@ -5,7 +5,7 @@ module.exports.playerMoving = (that, BOXSIZE) => {
   if ((Date.now() - that.player.animation.startTime) > 70) {
     that.player.animation.startTime = Date.now();
     that.positions.playerPos.moveCounter++;
-    if (that.positions.playerPos.moveCounter === 6) that.positions.playerPos.moveCounter = 0;
+    if (that.positions.playerPos.moveCounter === 8) that.positions.playerPos.moveCounter = 0;
   }
 
   let imgIndex = that.CONSTANTS.cordPrioritiesListSmall.indexOf(

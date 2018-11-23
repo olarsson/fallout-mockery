@@ -12,7 +12,10 @@ module.exports.updateCanvas = (that, BOXSIZE) => {
   that.paint.playerBox(that, BOXSIZE);
   that.paint.playerStillFacing(that, BOXSIZE);
   that.paint.playerMoving(that,BOXSIZE);
+  that.paint.playerGunFiring(that,BOXSIZE);
 
-  that.paint.mousePointer(that);
+  that.paint.mouseCursor(that);
+
+  that.paint.bar(that);
 
 };

@@ -1,7 +1,8 @@
 module.exports.fixCanvasSize = () => {
 
-  var canvas = document.getElementById("canvas");
-  canvas.width = canvas.offsetWidth;
-  canvas.height = canvas.offsetHeight;
+  [...document.querySelectorAll("canvas")].map(canvas => {
+    canvas.width = canvas.offsetWidth;
+    canvas.height = canvas.offsetHeight;
+  })
 
 };

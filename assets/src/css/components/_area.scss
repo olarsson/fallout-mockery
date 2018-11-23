@@ -13,3 +13,12 @@ body {
   background-color: #b1b1b1;
   cursor: none;
 }
+
+#canvasBar {
+  display: block;
+  position: relative;
+  width: $width;
+  height: 100px;
+  background-color: blue;
+  cursor: none;
+}

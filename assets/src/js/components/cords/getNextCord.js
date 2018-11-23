@@ -1,10 +1,19 @@
-module.exports.getNextCord = (that,xDestination,yDestination,directionX,directionY) => {
+module.exports.getNextCord = (
+  that,
+  xDestination,
+  yDestination,
+  directionX,
+  directionY,
+  disableUpAndDown = true,
+  determineIfRestricted = true
+) => {
 
   let prioIndex,
   prioStep = 1,
   prioStepPlus, prioStepMinus,
   iPlus, iMinus,
   prioArray = [],
+  isCordRestricted,
   prioritiesList = that.CONSTANTS.cordPrioritiesList;
 
   if (xDestination === -0) xDestination = 0; // TODO:
@@ -34,7 +43,8 @@ module.exports.getNextCord = (that,xDestination,yDestination,directionX,directio
 
     let newCords = {
       x: xDestination,
-      y: yDestination
+      y: yDestination,
+      restricted: null
     },
     x = prioArray[i].substr(0,1),
     y = prioArray[i].substr(1,1);
@@ -57,14 +67,37 @@ module.exports.getNextCord = (that,xDestination,yDestination,directionX,directio
       //console.log('////////'); // TODO:
     }
 
-    if (x === '/' && y === '-') console.log('banned!');
+    if (determineIfRestricted) {
+      isCordRestricted = !that.restricted.isCordRestricted(that,newCords.x,newCords.y);
+    }
+
+    if (disableUpAndDown) {
+
+      //disable down and up movement
+      if ( !isCordRestricted && !(x === '/' && (y === '-' || y === '+')) ) {
+        return {
+          newCords: newCords,
+          restricted: isCordRestricted
+        };
+      }
+
+    } else {
+
+      return {
+        newCords: newCords,
+        restricted: isCordRestricted
+      };
+
+    }
+
+/*    if (x === '/' && y === '-') console.log('banned!');
 
     if (
       that.restricted.isCordRestricted(that,newCords.x,newCords.y) &&
       !(x === '/' && (y === '-' || y === '+')) //disable down and up movement
     ) {
       return newCords;
-    }
+    }*/
 
   };
 

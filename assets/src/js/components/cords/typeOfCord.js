@@ -5,7 +5,9 @@ module.exports.typeOfCord = (that,cord) => {
     type: int //
       0 = nothing,
       1 = non-interactive,
-      2 = enemy
+      2 = living enemy
+      3 = dead enemy
+      4 = player
   }*/
 
   let nonInteractive = false, canMoveTo = true, enemyCord = false, type = 0;
@@ -15,9 +17,15 @@ module.exports.typeOfCord = (that,cord) => {
       enemy.CORD.x === cord.x &&
       enemy.CORD.y === cord.y
     ) {
-      type = 2;
-      enemyCord = true;
-      nonInteractive = true;
+      if (enemy.alive) {
+        type = 2;
+        enemyCord = true;
+        nonInteractive = true;
+      } else {
+        type = 3;
+        enemyCord = false;
+        nonInteractive = false;
+      }
     }
   });
 

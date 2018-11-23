@@ -1,16 +1,24 @@
 module.exports.getEnemyByCords = (that,cords) => {
 
-  let index;
+  let index, enemy = project.canvas.targets.enemies.find((obj, idx) => {
+    //console.log(obj.CORD.x, obj.CORD.y,cords.x,cords.y);
 
-  let enemy = that.targets.enemies.find((obj, idx) => {
-    index = idx;
-    return {
-      'CORD': {
-        x: 12,
-        y: 9
+    if (obj.CORD.x === cords.x && obj.CORD.y === cords.y) {
+
+      index = idx;
+
+      return {
+
+        CORD: {
+          x: cords.x,
+          y: cords.y
+        }
       }
     }
+
   });
+
+  if (enemy === undefined) return;
 
   return Object.assign(enemy, {
     idx: index
