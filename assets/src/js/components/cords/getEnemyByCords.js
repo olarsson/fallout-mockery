@@ -1,6 +1,6 @@
 module.exports.getEnemyByCords = (that,cords) => {
 
-  let index, enemy = project.canvas.targets.enemies.find((obj, idx) => {
+  let index, enemy = that.enemies.list.find((obj, idx) => {
     //console.log(obj.CORD.x, obj.CORD.y,cords.x,cords.y);
 
     if (obj.CORD.x === cords.x && obj.CORD.y === cords.y) {

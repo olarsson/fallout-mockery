@@ -12,7 +12,7 @@ module.exports.typeOfCord = (that,cord) => {
 
   let nonInteractive = false, canMoveTo = true, enemyCord = false, type = 0;
 
-  that.targets.enemies.map(enemy => {
+  that.enemies.list.map(enemy => {
     if (
       enemy.CORD.x === cord.x &&
       enemy.CORD.y === cord.y

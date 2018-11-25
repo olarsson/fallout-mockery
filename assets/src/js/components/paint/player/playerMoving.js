@@ -2,10 +2,12 @@ module.exports.playerMoving = (that, BOXSIZE) => {
 
   if (!(that.player.state === 1)) return;
 
+  let _anim = that.player.animations;
+
   if ((Date.now() - that.player.animation.startTime) > 70) {
     that.player.animation.startTime = Date.now();
     that.positions.playerPos.moveCounter++;
-    if (that.positions.playerPos.moveCounter === 8) that.positions.playerPos.moveCounter = 0;
+    if (that.positions.playerPos.moveCounter === _anim.moving.totalFrames) that.positions.playerPos.moveCounter = 0;
   }
 
   let imgIndex = that.CONSTANTS.cordPrioritiesListSmall.indexOf(
@@ -27,28 +29,15 @@ module.exports.playerMoving = (that, BOXSIZE) => {
   }
 
   that.canvas.drawImage(
-    that.paint.img.charMovementAll, //image source
-    44 * that.positions.playerPos.moveCounter, //clip from X in original image 44
-    imgIndex * 68, //clip from Y in original image 68
-    44, //sourceWidth (constant)
-    68, //sourceHeight (constant)
-    that.positions.playerPos.PX.x, //paint to X in canvas
-    that.positions.playerPos.PX.y - 50, //paint to Y in canvas
-    44, //destWidth (constant)
-    68, //destHeight (constant)
+    that.paint.img.playerMoving, //image source
+    _anim.moving.clipX * that.positions.playerPos.moveCounter, //clip from X in original image 44
+    imgIndex * _anim.moving.clipY, //clip from Y in original image 68
+    _anim.moving.width, //sourceWidth (constant)
+    _anim.moving.height, //sourceHeight (constant)
+    that.positions.playerPos.PX.x - _anim.moving.offsetX, //paint to X in canvas
+    that.positions.playerPos.PX.y - _anim.moving.offsetY, //paint to Y in canvas
+    _anim.moving.width, //destWidth (constant)
+    _anim.moving.height, //destHeight (constant)
   );
-
-
-/*  that.canvas.drawImage(
-    that.paint.img.charMovementDownRight, //image source
-    44 * that.positions.playerPos.moveCounter, //clip from X in original image 44
-    0, //clip from Y in original image 68
-    44, //sourceWidth (constant)
-    68, //sourceHeight (constant)
-    that.positions.playerPos.PX.x, //paint to X in canvas
-    that.positions.playerPos.PX.y - 50, //paint to Y in canvas
-    44, //destWidth (constant)
-    68, //destHeight (constant)
-  );*/
 
 };
