@@ -3,6 +3,7 @@ module.exports.updateCanvas = (that, BOXSIZE) => {
   that.paint.clearScreen(that);
   that.paint.background(that);
   that.paint.grid(that);
+  that.paint.mousePointerHover(that);
   that.paint.restrictedAreas(that);
 
   for (let i = 0; i < that.enemies.list.length; i++) {

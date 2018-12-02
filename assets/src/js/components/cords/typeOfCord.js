@@ -14,8 +14,8 @@ module.exports.typeOfCord = (that,cord) => {
 
   that.enemies.list.map(enemy => {
     if (
-      enemy.CORD.x === cord.x &&
-      enemy.CORD.y === cord.y
+      enemy.HEX.CORD.x === cord.x &&
+      enemy.HEX.CORD.y === cord.y
     ) {
       if (enemy.alive) {
         type = 2;

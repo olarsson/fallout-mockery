@@ -5,13 +5,22 @@ body {
   background-color: lightblue;
 }
 
+#HexCanvas {
+  display: block;
+  position: relative;
+  width: $width;
+  height: $height;
+  background-color: #b1b1b1;
+  //cursor: none;
+}
+
 #canvas {
   display: block;
   position: relative;
   width: $width;
   height: $height;
   background-color: #b1b1b1;
-  cursor: none;
+  //cursor: none;
 }
 
 #canvasBar {

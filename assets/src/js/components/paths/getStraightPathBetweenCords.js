@@ -16,7 +16,6 @@ module.exports.getStraightPathBetweenCords = (that,from,to) => {
       previousDestination.x,previousDestination.y,
       pathDirection.directionX,
       pathDirection.directionY,
-      false, //disable up and down movement
       true //check if cord is restricted
     );
 

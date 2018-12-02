@@ -4,7 +4,7 @@ module.exports.playerStillFacing = (that, BOXSIZE) => {
 
   let _anim = that.player.animations;
 
-  let imgIndex = that.CONSTANTS.cordPrioritiesListSmall.indexOf(
+  let imgIndex = that.CONSTANTS.cordPrioritiesList.indexOf(
     that.positions.playerPos.FACING.x +
     that.positions.playerPos.FACING.y
   );
@@ -17,8 +17,8 @@ module.exports.playerStillFacing = (that, BOXSIZE) => {
     clipY * _anim.still.height, //clip from Y in original image
     _anim.still.width, //sourceWidth (constant)
     _anim.still.height, //sourceHeight (constant)
-    that.positions.playerPos.PX.x - _anim.still.offsetX, //paint to X in canvas
-    that.positions.playerPos.PX.y - _anim.still.offsetY, //paint to Y in canvas
+    that.positions.playerPos.HEX.PX.x - _anim.still.offsetX, //paint to X in canvas
+    that.positions.playerPos.HEX.PX.y - _anim.still.offsetY, //paint to Y in canvas
     _anim.still.width, //destWidth (constant)
     _anim.still.height, //destHeight (constant)
   );

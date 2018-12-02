@@ -51,6 +51,7 @@
     "> 0.1%"
   ],
   "dependencies": {
+    "honeycomb-grid": "^1.4.1",
     "svgxuse": "1.2.6"
   }
 }

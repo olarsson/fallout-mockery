@@ -1,12 +1,14 @@
 module.exports.mousePointerPosition = (that,x,y) => {
 
-  that.positions.mousePointer.PX.x = x;
-  that.positions.mousePointer.PX.y = y;
+  that.positions.mousePointer.HEX.PX.x = x;
+  that.positions.mousePointer.HEX.PX.y = y;
 
   let calcCords = that.cords.getCords.small(x,y),
   cordType = that.cords.typeOfCord(
     that, calcCords.CORD
   );
+
+  //console.log(calcCords.CORD,x,y);
 
   if (cordType.type !== that.paint.img.cursorCurrentIdx) {
 
@@ -27,7 +29,7 @@ module.exports.mousePointerPosition = (that,x,y) => {
 
   }
 
-  that.positions.mousePointer.CORD.x = calcCords.CORD.x;
-  that.positions.mousePointer.CORD.y = calcCords.CORD.y;
+  that.positions.mousePointer.HEX.CORD.x = calcCords.CORD.x;
+  that.positions.mousePointer.HEX.CORD.y = calcCords.CORD.y;
 
 };

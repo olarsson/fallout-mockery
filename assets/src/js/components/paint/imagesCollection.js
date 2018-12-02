@@ -39,7 +39,7 @@ module.exports.imagesCollection = (that) => {
 
     enemyStill: new Image(),
     enemyStillInit() {
-      that.paint.img.enemyStill.src = 'assets/src/img/enemy_scorpion.png';
+      that.paint.img.enemyStill.src = 'assets/src/img/enemy_scorpion_still.png';
     },
 
     bgDesert: new Image(),

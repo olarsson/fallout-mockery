@@ -1,6 +1,6 @@
 module.exports.calculatePathDirection = (that,from,to) => {
 
-  let directionX = '/', directionY = '/';
+/*  let directionX = '/', directionY = '/';
 
   if (from.x < to.x) {
     directionX = '+'
@@ -14,7 +14,38 @@ module.exports.calculatePathDirection = (that,from,to) => {
   } else
   if (from.y > to.y) {
     directionY = '-'
+  }*/
+
+  let directionX = '', directionY = '';
+
+  if (to.x > from.x && to.y === from.y) {
+    directionX = '+'
+    directionY = '-'
+  } else
+  if (to.x > from.x && to.y > from.y) {
+    directionX = '+'
+    directionY = '+'
+  } else
+  if (to.x === from.x && to.y > from.y) {
+    directionX = '/'
+    directionY = '+'
+  } else
+  if (to.x < from.x && to.y > from.y) {
+    directionX = '-'
+    directionY = '+'
+  } else
+  if (to.x < from.x && to.y === from.y) {
+    directionX = '-'
+    directionY = '-'
+  } else
+  if (to.x === from.x && to.y < from.y) {
+    directionX = '/'
+    directionY = '-'
+  } else {
+    debugger
   }
+
+
 
   return {
     directionX: directionX,

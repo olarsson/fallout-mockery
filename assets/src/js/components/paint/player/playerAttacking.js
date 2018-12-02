@@ -24,8 +24,8 @@ module.exports.playerAttacking = (that, BOXSIZE) => {
     imgIndex * _anim.attack.clipY, //clip from Y in original image 68
     _anim.attack.width, //sourceWidth (constant)
     _anim.attack.height, //sourceHeight (constant)
-    that.positions.playerPos.PX.x - _anim.attack.offsetX, //paint to X in canvas
-    that.positions.playerPos.PX.y - _anim.attack.offsetY, //paint to Y in canvas
+    that.positions.playerPos.HEX.PX.x - _anim.attack.offsetX, //paint to X in canvas
+    that.positions.playerPos.HEX.PX.y - _anim.attack.offsetY, //paint to Y in canvas
     _anim.attack.width, //destWidth (constant)
     _anim.attack.height, //destHeight (constant)
   );

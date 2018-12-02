@@ -1,12 +1,9 @@
 module.exports.playerBox = (that, BOXSIZE) => {
 
-  that.canvas.fillStyle = 'green';
-  that.canvas.globalAlpha = '0.4'
-  that.canvas.fillRect(
-    that.positions.playerPos.PX.x,
-    that.positions.playerPos.PX.y,
-    BOXSIZE,BOXSIZE
+  that.hexagon.grid.drawHexAtColRow(
+    that.positions.playerPos.HEX.CORD.x,
+    that.positions.playerPos.HEX.CORD.y,
+    "blue"
   );
-  that.canvas.globalAlpha = '1'
 
 };

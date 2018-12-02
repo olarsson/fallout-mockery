@@ -4,7 +4,6 @@ module.exports.getNextCord = (
   yDestination,
   directionX,
   directionY,
-  disableUpAndDown = true,
   determineIfRestricted = true
 ) => {
 
@@ -45,33 +44,56 @@ module.exports.getNextCord = (
       x: xDestination,
       y: yDestination,
       restricted: null
-    },
-    x = prioArray[i].substr(0,1),
-    y = prioArray[i].substr(1,1);
+    };
 
-    if (x === '+') {
-      newCords.x = xDestination+1;
+    if (prioArray[i] === '/-') {
+      newCords.y = yDestination-1;
     } else
-    if (x === '-') {
-      newCords.x = xDestination-1;
-    } else {
-      //console.log('////////'); // TODO:
+    if (prioArray[i] === '/+') {
+      newCords.y = yDestination+1;
     }
 
-    if (y === '+') {
-      newCords.y = yDestination+1;
-    } else
-    if (y === '-') {
-      newCords.y = yDestination-1;
+    if (xDestination % 2 === 1) {
+
+      if (prioArray[i] === '+-') {
+        newCords.x = xDestination+1;
+      } else
+      if (prioArray[i] === '++') {
+        newCords.x = xDestination+1;
+        newCords.y = yDestination+1;
+      } else
+      if (prioArray[i] === '-+') {
+        newCords.x = xDestination-1;
+        newCords.y = yDestination-1;
+      } else
+      if (prioArray[i] === '--') {
+        newCords.x = xDestination-1;
+      }
+
     } else {
-      //console.log('////////'); // TODO:
+
+      if (prioArray[i] === '+-') {
+        newCords.x = xDestination+1;
+        newCords.y = yDestination-1;
+      } else
+      if (prioArray[i] === '++') {
+        newCords.x = xDestination+1;
+      } else
+      if (prioArray[i] === '-+') {
+        newCords.x = xDestination-1;
+      } else
+      if (prioArray[i] === '--') {
+        newCords.x = xDestination-1;
+        newCords.y = yDestination-1;
+      }
+
     }
 
     if (determineIfRestricted) {
       isCordRestricted = !that.restricted.isCordRestricted(that,newCords.x,newCords.y);
     }
 
-    if (disableUpAndDown) {
+/*    if (disableUpAndDown) {
 
       //disable down and up movement
       if ( !isCordRestricted && !(x === '/' && (y === '-' || y === '+')) ) {
@@ -88,7 +110,16 @@ module.exports.getNextCord = (
         restricted: isCordRestricted
       };
 
+    }*/
+
+    //if (that.restricted.isCordRestricted(that,newCords.x,newCords.y)) {
+    if (!isCordRestricted) {
+      return {
+        newCords: newCords,
+        restricted: isCordRestricted
+      };
     }
+    //}
 
 /*    if (x === '/' && y === '-') console.log('banned!');
 

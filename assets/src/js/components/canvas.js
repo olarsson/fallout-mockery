@@ -1,3 +1,6 @@
+//import './hexCords/rawHex.js';
+import {HexagonGrid,getSelectedTile} from './hexCords/Hexagon.js';
+
 const BOXSIZE = 25 / 1;
 const BOXWIDTH = 700;
 const BOXHEIGHT = 425;
@@ -35,6 +38,7 @@ import {grid} from './paint/grid.js';
 import {mouseCursor} from './paint/mouseCursor.js';
 import {restrictedAreas} from './paint/restrictedAreas.js';
 import {background} from './paint/background.js';
+import {mousePointerHover} from './paint/mousePointerHover.js';
 
 import {playerBox} from './paint/player/playerBox.js';
 import {playerStillFacing} from './paint/player/playerStillFacing.js';
@@ -88,6 +92,7 @@ var that = {
     this.paint.mouseCursor = mouseCursor;
     this.paint.restrictedAreas = restrictedAreas;
     this.paint.background = background;
+    that.paint.mousePointerHover = mousePointerHover;
 
     this.paint.playerBox = playerBox;
     this.paint.playerStillFacing = playerStillFacing;
@@ -132,11 +137,7 @@ var that = {
     },
 
     cordPrioritiesList: [
-      '+-','+/','++','/+','-+','-/','--','/-'
-    ],
-
-    cordPrioritiesListSmall: [
-      '+-','+/','++','-+','-/','--'
+      '+-','++','/+','-+','--','/-'
     ]
 
   },
@@ -144,6 +145,8 @@ var that = {
   elem: {
     area: o('#canvas', 1),
   },
+
+  hexCords: {},
 
   math: {},
 
@@ -168,14 +171,24 @@ var that = {
     createEnemy(x,y) {
 
       let enemy = {
-        CORD: {
+        HEX: {
+          CORD: {
+            x: x,
+            y: y
+          },
+/*          PX: {
+            x: x * BOXSIZE,
+            y: y * BOXSIZE
+          }*/
+        },
+/*        CORD: {
           x: x,
           y: y
         },
         PX: {
           x: x * BOXSIZE,
           y: y * BOXSIZE
-        },
+        },*/
         FACING: {
           x: '+',
           y: '+'
@@ -200,6 +213,12 @@ var that = {
     },
 
     list: [],
+
+  },
+
+  hexagon: {
+
+    grid: new HexagonGrid("canvas", 20),
 
   },
 
@@ -302,7 +321,7 @@ var that = {
         enemy.idx,
         that.paths.calculatePathDirection(that,
           enemy.CORD,
-          that.positions.playerPos.CORD
+          that.positions.playerPos.HEX.CORD
         )
       );
 
@@ -379,7 +398,7 @@ var that = {
       //force the player to face the enemy
       that.update.playerFacing(that,
         that.paths.calculatePathDirection(that,
-          that.positions.playerPos.CORD,
+          that.positions.playerPos.HEX.CORD,
           enemy.CORD
         )
       );
@@ -472,7 +491,7 @@ var that = {
 
         let pathDirection = that.paths.calculatePathDirection(that,
           enemy.CORD,
-          that.positions.playerPos.CORD
+          that.positions.playerPos.HEX.CORD
         );
 
         that.update.enemyFacing(that,
@@ -588,24 +607,28 @@ var that = {
   positions: {
 
     mousePointer: {
-      PX: {
-        x: 0,
-        y: 0
-      },
-      CORD: {
-        x: 0,
-        y: 0
+      HEX: {
+        PX: {
+          x: 0,
+          y: 0,
+        },
+        CORD: {
+          x: 0,
+          y: 0
+        }
       }
     },
 
     clickPos: {
-      PX: {
-        x: 0,
-        y: 0
-      },
-      CORD: {
-        x: 0,
-        y: 0
+      HEX: {
+        PX: {
+          x: 0,
+          y: 0,
+        },
+        CORD: {
+          x: 0,
+          y: 0
+        }
       }
     },
 
@@ -614,15 +637,17 @@ var that = {
       moveCounter: 0,
       FACING: {
         x: '+',
-        y: '/'
+        y: '+'
       },
-      PX: {
-        x: 0,
-        y: 0
-      },
-      CORD: {
-        x: 0,
-        y: 0
+      HEX: {
+        PX: {
+          x: 0,
+          y: 0,
+        },
+        CORD: {
+          x: 0,
+          y: 0
+        }
       }
     }
 
@@ -677,9 +702,11 @@ var that = {
         pathDirection = that.paths.calculatePathDirection(that,previousDestination,to);
 
         nextCords = that.cords.getNextCord(that,
-          previousDestination.x,previousDestination.y,
+          previousDestination.x,
+          previousDestination.y,
           pathDirection.directionX,
-          pathDirection.directionY
+          pathDirection.directionY,
+          true
         );
 
         previousDestination = nextCords.newCords;
@@ -694,6 +721,8 @@ var that = {
         }
 
       }
+
+      console.log(previousSteps);
 
       i = 0;
 
@@ -750,6 +779,22 @@ var that = {
       });
     },
 
+    updateMousePointerPositionHEX() {
+      that.elem.area.addEventListener("mousemove", function(e) {
+
+        let tile = that.hexagon.grid.getSelectedTile(
+          e.pageX - that.hexagon.grid.canvasOriginX,
+          e.pageY - that.hexagon.grid.canvasOriginY
+        );
+
+        that.positions.mousePointer.HEX.CORD.x = tile.column;
+        that.positions.mousePointer.HEX.CORD.y = tile.row;
+
+        //console.log(that.positions.mousePointer.HEX.CORD);
+
+      }, false);
+    },
+
     click() {
 
       that.elem.area.addEventListener('click', function(e) {
@@ -760,38 +805,48 @@ var that = {
 
         //current/original click position
         originalPos = JSON.parse(JSON.stringify({
-          x: that.positions.clickPos.CORD.x,
-          y: that.positions.clickPos.CORD.y
+          x: that.positions.clickPos.HEX.CORD.x,
+          y: that.positions.clickPos.HEX.CORD.y
         }));
 
         //set new cords for the click position
-        that.update.clickPosition(that,
+        that.update.clickPosition(that, e,
           e.clientX - that.CONSTANTS.area.x,
           e.clientY - that.CONSTANTS.area.y
         );
 
         //check if the new cords are the same as the old
         sameCordAsBefore = that.restricted.isCordSameAsNow(
-          that, that.positions.clickPos.CORD, originalPos
+          that, that.positions.clickPos.HEX.CORD, originalPos
         );
 
+        //players current position
         from = {
-          x: that.positions.playerPos.CORD.x,
-          y: that.positions.playerPos.CORD.y
+          x: that.positions.playerPos.HEX.CORD.x,
+          y: that.positions.playerPos.HEX.CORD.y
         };
 
+        //destination click position
         to = {
-          x: that.positions.clickPos.CORD.x,
-          y: that.positions.clickPos.CORD.y
+          x: that.positions.clickPos.HEX.CORD.x,
+          y: that.positions.clickPos.HEX.CORD.y
         };
+
+        console.log(from);
+        console.log(to);
 
         //determines if the cords is an enemy, a structure, etc..
-        cordType = that.cords.typeOfCord(that,that.positions.clickPos.CORD);
+        cordType = that.cords.typeOfCord(that,that.positions.clickPos.HEX.CORD);
+
+        console.log(cordType);
 
         //MOVE = cord is nothing special, and cord is different than before
         if (cordType.type === 0 && !sameCordAsBefore) {
           that.movement.movePlayerFromStartToEnd(from, to);
-        } else
+        }
+
+/*
+         else
         ///////////////////////////////////////
 
         //DONT MOVE = cord is non-interactive area
@@ -808,15 +863,17 @@ var that = {
         //DEAD ENEMY, loot if in range
         if (cordType.type === 3) {
           console.log('dead enemy! loot?');
-        }
+        }*/
 
       });
 
     },
 
     init() {
+      //that.hexagon.init();
       that.events.updateInterface();
       that.events.updateMousePointerPosition();
+      that.events.updateMousePointerPositionHEX();
       that.events.click();
     }
 
@@ -826,7 +883,7 @@ var that = {
     this.imports();
     this.utils.fixCanvasSize();
 
-    //assign default weapon (gun) to player
+    //assign default weapon (a gun) to player
     Object.assign(this.player.weapon, that.weapons.gun);
 
     this.paint.img.barInit();
@@ -846,8 +903,8 @@ var that = {
 
     this.paint.img.enemyStillInit();
 
-    this.enemies.createEnemy(12,9);
-    this.enemies.createEnemy(9,5);
+    this.enemies.createEnemy(8,6);
+    this.enemies.createEnemy(13,8);
 
     this.events.init();
     this.update.areaViewportPosition(that);
