@@ -1,5 +1,12 @@
 module.exports.weaponsJSON = {
 
+  melee: {
+    melee: true,
+    range: 1,
+    damage: [7,12],
+    actionPoints: 3
+  },
+
   gun: {
     melee: false,
     range: 5,

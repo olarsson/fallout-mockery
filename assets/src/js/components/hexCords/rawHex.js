@@ -343,7 +343,10 @@ function test_hex_round()
 
 function test_hex_linedraw()
 {
-  equal_hex_array("hex_linedraw", [Hex(0, 0, 0), Hex(0, -1, 1), Hex(0, -2, 2), Hex(1, -3, 2), Hex(1, -4, 3), Hex(1, -5, 4)], hex_linedraw(Hex(0, 0, 0), Hex(1, -5, 4)));
+  console.log(
+  equal_hex_array("hex_linedraw", [Hex(0, 0, 0), Hex(0, -1, 1), Hex(0, -2, 2), Hex(1, -3, 2), Hex(1, -4, 3), Hex(1, -5, 4)], hex_linedraw(Hex(0, 0, 0), Hex(1, -5, 4)))  
+  );
+
 }
 
 function test_layout()
@@ -424,8 +427,6 @@ function test_all()
   test_doubled_from_cube();
   test_doubled_to_cube();
 }
-
-
 
 test_all()
 

@@ -10,12 +10,16 @@ module.exports.updateCanvas = (that, BOXSIZE) => {
     that.paint.enemyBox(that,i,BOXSIZE);
   }
 
-  that.paint.playerBox(that, BOXSIZE);
-  that.paint.playerStillFacing(that, BOXSIZE);
+  that.paint.playerBox(that,BOXSIZE);
+  that.paint.playerStillFacing(that,BOXSIZE);
   that.paint.playerMoving(that,BOXSIZE);
   that.paint.playerAttacking(that,BOXSIZE);
 
-  that.paint.enemyStillFacing(that, BOXSIZE);
+  that.paint.enemyStillFacing(that,BOXSIZE);
+  that.paint.enemyMoving(that,BOXSIZE);
+  that.paint.enemyAttacking(that,BOXSIZE);
+  that.paint.enemyHit(that,BOXSIZE);
+  that.paint.enemyDeath(that,BOXSIZE);
 
   that.paint.mouseCursor(that);
 

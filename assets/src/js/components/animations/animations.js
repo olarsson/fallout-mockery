@@ -51,6 +51,104 @@ module.exports.animations = (that) => {
         }
       }
 
+    },
+
+    enemy: {
+
+      scorpionStill: {
+        sprite: 'assets/src/img/enemy_scorpion_still.png',
+        countX: 1,
+        countY: 6,
+        width: 59,
+        height: 49,
+        clipX: 59,
+        clipY: 49,
+        offsetX: 0,
+        offsetY: 50,
+        init() {
+          that.paint.img.scorpionStill.src = that.animations.enemy.scorpionStill.sprite;
+        }
+      },
+
+      scorpionAttack: {
+        sprite: 'assets/src/img/enemy_scorpion_attack.png',
+        totalFrames: 11,
+        countX: 11,
+        countY: 6,
+        width: 86,
+        height: 68,
+        clipX: 86,
+        clipY: 68,
+        offsetX: 10,
+        offsetY: 40,
+        init() {
+          that.paint.img.scorpionAttacking.src = that.animations.enemy.scorpionAttack.sprite;
+        }
+      },
+
+      scorpionMoving: {
+        sprite: 'assets/src/img/enemy_scorpion_moving.png',
+        totalFrames: 8,
+        countX: 8,
+        countY: 6,
+        width: 59,
+        height: 48,
+        clipX: 59,
+        clipY: 48,
+        offsetX: 0,
+        offsetY: 20,
+        init() {
+          that.paint.img.scorpionMoving.src = that.animations.enemy.scorpionMoving.sprite;
+        }
+      },
+
+      scorpionHit: {
+        sprite: 'assets/src/img/enemy_scorpion_hit.png',
+        totalFrames: 6,
+        countX: 6,
+        countY: 6,
+        width: 59,
+        height: 48,
+        clipX: 59,
+        clipY: 48,
+        offsetX: 0,
+        offsetY: 20,
+        init() {
+          that.paint.img.scorpionHit.src = that.animations.enemy.scorpionHit.sprite;
+        }
+      },
+
+      scorpionDeath: {
+        sprite: 'assets/src/img/enemy_scorpion_death.png',
+        totalFrames: 5,
+        countX: 5,
+        countY: 6,
+        width: 53.8,
+        height: 34.83,
+        clipX: 53.8,
+        clipY: 34.83,
+        offsetX: 0,
+        offsetY: 10,
+        init() {
+          that.paint.img.scorpionDeath.src = that.animations.enemy.scorpionDeath.sprite;
+        }
+      },
+
+      scorpionDead: {
+        sprite: 'assets/src/img/enemy_scorpion_dead.png',
+        countX: 1,
+        countY: 6,
+        width: 53.8,
+        height: 34.83,
+        clipX: 0,
+        clipY: 34.83,
+        offsetX: 0,
+        offsetY: 10,
+        init() {
+          that.paint.img.scorpionDead.src = that.animations.enemy.scorpionDead.sprite;
+        }
+      }
+
     }
 
   }

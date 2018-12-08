@@ -55,6 +55,10 @@ module.exports.getNextCord = (
 
     if (xDestination % 2 === 1) {
 
+      //debugger
+
+      //odd columns
+
       if (prioArray[i] === '+-') {
         newCords.x = xDestination+1;
       } else
@@ -64,13 +68,17 @@ module.exports.getNextCord = (
       } else
       if (prioArray[i] === '-+') {
         newCords.x = xDestination-1;
-        newCords.y = yDestination-1;
+        newCords.y = yDestination+1;
       } else
       if (prioArray[i] === '--') {
         newCords.x = xDestination-1;
       }
 
     } else {
+
+      //debugger
+
+      //even columns
 
       if (prioArray[i] === '+-') {
         newCords.x = xDestination+1;

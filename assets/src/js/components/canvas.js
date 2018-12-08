@@ -1,4 +1,4 @@
-//import './hexCords/rawHex.js';
+import './hexCords/rawHex.js';
 import {HexagonGrid,getSelectedTile} from './hexCords/Hexagon.js';
 
 const BOXSIZE = 25 / 1;
@@ -47,6 +47,10 @@ import {playerAttacking} from './paint/player/playerAttacking.js';
 
 import {enemyBox} from './paint/enemy/enemyBox.js';
 import {enemyStillFacing} from './paint/enemy/enemyStillFacing.js';
+import {enemyMoving} from './paint/enemy/enemyMoving.js';
+import {enemyAttacking} from './paint/enemy/enemyAttacking.js';
+import {enemyHit} from './paint/enemy/enemyHit.js';
+import {enemyDeath} from './paint/enemy/enemyDeath.js';
 
 import {clearScreen} from './paint/clearScreen.js';
 import {updateCanvas} from './paint/updateCanvas.js';
@@ -57,6 +61,7 @@ import {mousePointerPosition} from './update/mousePointerPosition.js';
 import {clickPosition} from './update/clickPosition.js';
 import {playerBoxPosition} from './update/playerBoxPosition.js';
 import {playerFacing} from './update/playerFacing.js';
+import {enemyBoxPosition} from './update/enemyBoxPosition.js';
 
 import {enemyFacing} from './update/enemyFacing.js';
 
@@ -101,6 +106,10 @@ var that = {
 
     this.paint.enemyBox = enemyBox;
     this.paint.enemyStillFacing = enemyStillFacing;
+    this.paint.enemyMoving = enemyMoving;
+    this.paint.enemyAttacking = enemyAttacking;
+    this.paint.enemyHit = enemyHit;
+    this.paint.enemyDeath = enemyDeath;
 
     this.paint.clearScreen = clearScreen;
     this.paint.updateCanvas = updateCanvas;
@@ -111,6 +120,7 @@ var that = {
     this.update.playerBoxPosition = playerBoxPosition;
     this.update.playerFacing = playerFacing;
     this.update.enemyFacing = enemyFacing;
+    this.update.enemyBoxPosition = enemyBoxPosition;
 
     this.utils.fixCanvasSize = fixCanvasSize;
     this.utils.createRandomRestrictedArea = createRandomRestrictedArea;
@@ -181,32 +191,156 @@ var that = {
             y: y * BOXSIZE
           }*/
         },
-/*        CORD: {
-          x: x,
-          y: y
-        },
-        PX: {
-          x: x * BOXSIZE,
-          y: y * BOXSIZE
-        },*/
         FACING: {
           x: '+',
           y: '+'
         },
         DEFAULTS: {
-          actionPoints: 8
+          actionPoints: 4
         },
+        animation: {},
         id: that.math.generateUniqueID(that),
-        //state: 0,
         alive: true,
         health: 30,
         engaged: false,
+        maxsteps: 10,
         aggroRange: 5,
         actionPoints: 8,
-        weapon: {}
+        weapon: {},
+
+        state: 0,
+        temp: {
+          tempStep: 0,
+          haveBeenRun: false,
+        },
+
+        animations: {
+
+          still: {},
+          moving: {},
+          attack: {},
+          hit: {},
+          death: {},
+          dead: {}
+
+        }
+
       };
 
-      Object.assign(enemy.weapon, that.weapons.rifle);
+      Object.assign(enemy.weapon, that.weapons.melee);
+
+      Object.assign(enemy.animation, {
+
+        startTime: null,
+
+        assignAnimationToEnemy() {
+
+          //still animation
+          Object.assign(
+            enemy.animations.still,
+            that.animations.enemy.scorpionStill
+          );
+          enemy.animations.still.init();
+
+          //movement animation
+          Object.assign(
+            enemy.animations.moving,
+            that.animations.enemy.scorpionMoving
+          );
+          enemy.animations.moving.init();
+
+          //attack animation
+          Object.assign(
+            enemy.animations.attack,
+            that.animations.enemy.scorpionAttack
+          );
+          enemy.animations.attack.init();
+
+          //hit animation
+          Object.assign(
+            enemy.animations.hit,
+            that.animations.enemy.scorpionHit
+          );
+          enemy.animations.hit.init();
+
+          //death animation
+          Object.assign(
+            enemy.animations.death,
+            that.animations.enemy.scorpionDeath
+          );
+          enemy.animations.death.init();
+
+          //dead animation
+          Object.assign(
+            enemy.animations.dead,
+            that.animations.enemy.scorpionDead
+          );
+          enemy.animations.dead.init();
+
+        },
+
+        init(state) {
+          enemy.temp.haveBeenRun = false;
+          enemy.temp.tempStep = 0;
+          enemy.animation.startTime = Date.now();
+          enemy.state = state;
+        },
+
+        finished() {
+          enemy.state = 0;
+        },
+
+        movementAnimation: {
+
+          start() {
+            enemy.animation.init(1);
+          },
+
+          stop() {
+            enemy.animation.finished();
+          }
+
+        },
+
+        attackAnimation: {
+
+          start() {
+            enemy.animation.init(2);
+          },
+
+          stop() {
+            enemy.animation.finished();
+          }
+
+        },
+
+        hitAnimation: {
+
+          start() {
+            enemy.animation.init(3);
+          },
+
+          stop() {
+            enemy.animation.finished();
+          }
+
+        },
+
+        deathAnimation: {
+
+          start() {
+            enemy.animation.init(-1);
+          },
+
+          stop() {
+            enemy.animation.finished();
+          }
+
+        }
+
+      });
+
+      enemy.animation.assignAnimationToEnemy();
 
       that.enemies.list.push(enemy);
 
@@ -235,9 +369,17 @@ var that = {
       nextPos++;
       if (nextPos > that.combat.queue.length - 1) nextPos = 0;
 
+      //debugger
+
       //for (let i = nextPos; i < that.combat.queue.length - 1; i++) {
+      i = nextPos;
       while(true) {
-        if (that.combat.queue[i].engaged && that.combat.queue[i].alive) {
+        //debugger
+        if (that.combat.queue[i].hasOwnProperty('engaged')) {
+          if (that.combat.queue[i].engaged && that.combat.queue[i].alive) {
+            resultPos = i;
+          }
+        } else {
           resultPos = i;
         }
         i++;
@@ -247,11 +389,81 @@ var that = {
 
       that.combat.queuePos = resultPos;
 
+      console.log(that.combat.queuePos);
+
+    },
+
+    resetActionPoints(player) {
+      if (player) {
+        that.player.actionPoints = that.player.DEFAULTS.actionPoints;
+      } else {
+        that.combat.queue[that.combat.queuePos].actionPoints = that.combat.queue[that.combat.queuePos].DEFAULTS.actionPoints;
+      }
+    },
+
+    nextEnemyAction(enemy) {
+
+      console.log('--NEXT ENEMY ACTION--');
+
+      //stop player actions
+      that.player.stopActions = true;
+
+      //if enemy is out of actionPoints, move to next in queue
+      if (enemy.actionPoints === 0) {
+        console.log('enemy is out of actionPoints, move to next in queue');
+        that.combat.moveToNextInQueue();
+        return;
+      }
+
+      //get straight path to player by cords
+      let pathToPlayer = that.paths.getStraightPathBetweenCords(that,
+        enemy.HEX.CORD,
+        project.canvas.positions.playerPos.HEX.CORD
+      );
+
+      const moveTowardsPlayer = () => {
+        console.log('move towards player');
+        that.movement.moveEnemyFromStartToEnd(
+          enemy,
+          enemy.HEX.CORD,
+          project.canvas.positions.playerPos.HEX.CORD
+        );
+      };
+
+      //player is within weapon range
+      if (enemy.weapon.range >= pathToPlayer.pathLength) {
+
+        //enough actionPoints, attack the player
+        //otherwise, move towards the player if necessary
+        if (enemy.actionPoints >= enemy.weapon.actionPoints) {
+          console.log('attack player!');
+          that.combat.attackPlayer(enemy);
+        } else {
+
+          //move towards player if too far away
+          //otherwise, move to next in queue
+          if (pathToPlayer.pathLength > 1) {
+            moveTowardsPlayer();
+          } else {
+            that.combat.moveToNextInQueue();
+          }
+
+        }
+
+      //the player is not within range, move towards it
+      } else {
+        moveTowardsPlayer();
+      }
+
     },
 
     moveToNextInQueue() {
 
+      let attackingEntity;
+
       that.combat.setNextInQueue();
+
+      console.log('-------MOVE TO NEXT IN QUEUE');
 
       //nothing to move on to, assume end of combat
       if (that.combat.queuePos === -1) {
@@ -260,18 +472,21 @@ var that = {
         return;
       }
 
+      attackingEntity = that.combat.queue[that.combat.queuePos];
+
       //the next in turn is the player, enable player actions and exit
-      if (that.combat.queue[that.combat.queuePos].id === '_player') {
+      //reset actionPoints
+      if (attackingEntity.id === '_player') {
         that.player.stopActions = false;
+        that.combat.resetActionPoints(true);
         console.log('--PLAYERS TURN--');
         return;
       }
 
-      //its an enemy, make it attack, and stop player actions
-      that.player.stopActions = true;
-      console.log('--ENEMIES TURN--');
-
-      that.combat.attackPlayer(that.combat.queue[that.combat.queuePos])
+      //its an enemy, reset enemy actionPoints
+      that.combat.resetActionPoints(false);
+      //perform next appropiate enemy action
+      that.combat.nextEnemyAction(attackingEntity);
 
     },
 
@@ -284,7 +499,7 @@ var that = {
     enterCombat() {
       console.log('enter combat scenario');
       that.combat.inCombat = true;
-      that.player.actionPoints = that.player.DEFAULTS.actionPoints;
+      that.combat.resetActionPoints(true)
       that.combat.clearQueue();
       that.combat.populateQueue();
     },
@@ -303,16 +518,24 @@ var that = {
           that.combat.queue.push(that.enemies.list[idx])
         }
       });
-      console.log(that.combat.queue);
+    },
+
+    addToQueue(enemy) {
+
+      if (typeof that.combat.queue.find(obj => obj.id === enemy.id) === "undefined") {
+        that.combat.queue.push(enemy)
+      }
+
     },
 
     leaveCombat() {
       that.player.stopActions = false;
+      that.combat.inCombat = false;
+      that.combat.resetActionPoints(true);
       console.log('--leaving combat--');
     },
 
     attackPlayer(enemy) {
-      console.log(enemy);
 
       let damage;
 
@@ -320,7 +543,7 @@ var that = {
       that.update.enemyFacing(that,
         enemy.idx,
         that.paths.calculatePathDirection(that,
-          enemy.CORD,
+          enemy.HEX.CORD,
           that.positions.playerPos.HEX.CORD
         )
       );
@@ -328,6 +551,8 @@ var that = {
       //check if enemy has enough actionPoints for the attack
       if (enemy.actionPoints < enemy.weapon.actionPoints) {
         //too few actionPoints, stop the attack
+        console.log('too few actionPoints, stop the attack');
+        that.combat.nextEnemyAction(enemy);
         return;
       } else {
         //subtract actionPoints and continue
@@ -340,54 +565,34 @@ var that = {
         enemy.weapon.damage[1]
       );
 
-      //animate the attack
-/*      that.player.animation.attackAnimation.start();
-      let i = 0, attackTimer = setInterval(() => {
-        i++;
-        if (i === 4) {
-          console.log('on hit action');
-        } else
-        if (i === 7) {
-          endOfAttack();
-        }
-      }, 100);*/
-
-      /*
-
       const endOfAttack = () => {
         clearInterval(attackTimer);
-        that.player.animation.attackAnimation.stop();
+        enemy.animation.attackAnimation.stop();
 
         //subtract the damage from the enemy health
-        enemy.health -= damage;
+        that.player.health -= damage;
 
-        //enemy was killed, unengage that enemy and change it state
-        if (enemy.health <= 0) {
-          enemy.alive = false;
-          enemy.engaged = false;
+        //player was killed, end the game
+        if (that.player.health <= 0) {
+          console.log('GAME OVER, youre dead');
+          return;
         }
 
-        //enable actions
-        that.player.stopActions = false;
-
-        //out of actionPoints! move to next entity in queue
-        if (that.player.actionPoints === 0) {
-          that.combat.moveToNextInQueue();
-        }
+        that.combat.nextEnemyAction(enemy);
 
       };
 
       //animate the attack
-      that.player.animation.attackAnimation.start();
+      enemy.animation.attackAnimation.start();
       let i = 0, attackTimer = setInterval(() => {
         i++;
         if (i === 4) {
           console.log('on hit action');
         } else
-        if (i === 7) {
+        if (i === 11) {
           endOfAttack();
         }
-      }, 100);*/
+      }, 100);
 
     },
 
@@ -399,7 +604,7 @@ var that = {
       that.update.playerFacing(that,
         that.paths.calculatePathDirection(that,
           that.positions.playerPos.HEX.CORD,
-          enemy.CORD
+          enemy.HEX.CORD
         )
       );
 
@@ -435,6 +640,10 @@ var that = {
         if (enemy.health <= 0) {
           enemy.alive = false;
           enemy.engaged = false;
+          enemy.animation.deathAnimation.start();
+          setTimeout(() => {
+            enemy.animation.deathAnimation.stop();
+          }, 800);
         }
 
         //enable actions
@@ -453,9 +662,14 @@ var that = {
         i++;
         if (i === 4) {
           console.log('on hit action');
+          enemy.animation.hitAnimation.start();
+          setTimeout(() => {
+            enemy.animation.hitAnimation.stop();
+            endOfAttack();
+          }, 800);
         } else
         if (i === 7) {
-          endOfAttack();
+          //endOfAttack();
         }
       }, 100);
 
@@ -471,8 +685,13 @@ var that = {
       //attack is within required range, attack!
       if (pathToEnemy.pathLength <= that.player.weapon.range) {
 
+        console.log('TIHS ENEMY ENGAGED: ', enemy);
+
         //consider enemy engaged, regardless of outcome
         that.enemies.list[enemy.idx].engaged = true;
+
+        //add to combat queue
+        that.combat.addToQueue(enemy);
 
         //if it's the combat first attack then clear any previous
         //combat queue and reset player actionPoints
@@ -490,7 +709,7 @@ var that = {
         console.log('the enemy is not within range');
 
         let pathDirection = that.paths.calculatePathDirection(that,
-          enemy.CORD,
+          enemy.HEX.CORD,
           that.positions.playerPos.HEX.CORD
         );
 
@@ -515,9 +734,12 @@ var that = {
     },
 
     //state: integer
+    //-1 = death
     //0 = still
     //1 = moving
     //2 = attacking
+    //3 = hit
+    health: 40,
     state: 0,
     actionPoints: 8,
     stopActions: false,
@@ -566,7 +788,7 @@ var that = {
       },
 
       init(state) {
-        that.player.haveBeenRun = false;
+        that.player.temp.haveBeenRun = false;
         that.player.temp.attackStep = 0;
         that.player.animation.startTime = Date.now();
         that.player.state = state;
@@ -722,7 +944,19 @@ var that = {
 
       }
 
-      console.log(previousSteps);
+      if (that.combat.inCombat) {
+
+        //no actionPoints left, cancel movement and move to next in queue
+        if (that.player.actionPoints === 0) {
+          that.combat.moveToNextInQueue();
+          return;
+        }
+
+        //check how many steps the player is allowed to take
+        //subtract the actionpoints
+        previousSteps = previousSteps.slice(0, that.player.actionPoints);
+        that.combat.subtractActionPoints(true,previousSteps.length,that.player);
+      }
 
       i = 0;
 
@@ -741,6 +975,98 @@ var that = {
           clearInterval(moveTimer);
           that.player.animation.movementAnimation.stop();
           that.restricted.dynamic = false;
+
+          //no actionPoints left, cancel movement and move to next in queue
+          if (that.combat.inCombat && that.player.actionPoints === 0) {
+            that.combat.moveToNextInQueue();
+            return;
+          }
+
+        }
+
+        i++;
+
+      }, 150);
+
+    },
+
+    moveEnemyFromStartToEnd(enemy,from,to) {
+
+      //if (that.player.state !== 0) return;
+
+      that.restricted.dynamic = true;
+      that.restricted.dynamicCords = that.restricted.cords.slice(0, that.restricted.cords.length);
+
+      let previousSteps = [], i, nextCords, moveTimer, previousDestination = from, pathDirection;
+
+      //make sure enemies cant stack on top of each other
+      for (i = 0; i < that.enemies.list.length; i++) {
+        that.restricted.dynamicCords.push(that.enemies.list[i].HEX.CORD);
+      }
+
+      for (i = 0; i < enemy.maxsteps; i++) {
+
+        that.restricted.dynamicCords.push(previousDestination);
+
+        pathDirection = that.paths.calculatePathDirection(that,previousDestination,to);
+
+        nextCords = that.cords.getNextCord(that,
+          previousDestination.x,
+          previousDestination.y,
+          pathDirection.directionX,
+          pathDirection.directionY,
+          true
+        );
+
+        previousDestination = nextCords.newCords;
+
+        previousSteps.push({
+          nextCords: nextCords.newCords,
+          pathDirection: pathDirection
+        });
+
+        if (nextCords.newCords.x == to.x && nextCords.newCords.y == to.y) {
+          break;
+        }
+
+      }
+
+      //remove last cord so you the enemy doesnt stand on the player
+      if (
+        previousSteps[previousSteps.length-1].nextCords.x === to.x &&
+        previousSteps[previousSteps.length-1].nextCords.y === to.y
+      ) {
+        previousSteps.pop();
+      }
+
+      //check how many steps the enemy is allowed to take
+      //subtract the actionpoints
+      previousSteps = previousSteps.slice(0, enemy.actionPoints);
+
+      that.combat.subtractActionPoints(false,previousSteps.length,enemy);
+
+      i = 0;
+
+      enemy.animation.movementAnimation.start();
+
+      moveTimer = setInterval(() => {
+
+        that.update.enemyBoxPosition(that,
+          enemy,
+          previousSteps[i].nextCords.x,
+          previousSteps[i].nextCords.y
+        );
+
+        that.update.enemyFacing(that,enemy.idx,previousSteps[i].pathDirection);
+
+        if (i === previousSteps.length - 1) {
+          clearInterval(moveTimer);
+          enemy.animation.movementAnimation.stop();
+          that.restricted.dynamic = false;
+
+          //end of movement, perform next appropiate enemy action
+          that.combat.nextEnemyAction(enemy)
+
         }
 
         i++;
@@ -758,13 +1084,8 @@ var that = {
         requestAnimationFrame(() => {
           that.paint.updateCanvas(that, BOXSIZE);
         });
-      }, 16); //60~ fps
-
-/*      setInterval(() => {
-        requestAnimationFrame(() => {
-          that.paint.updateCanvas(that, BOXSIZE);
-        });
-      }, 50); //20~ fps*/
+        //}, 16); //60~ fps
+      }, 50); //20~ fps
 
     },
 
@@ -789,8 +1110,6 @@ var that = {
 
         that.positions.mousePointer.HEX.CORD.x = tile.column;
         that.positions.mousePointer.HEX.CORD.y = tile.row;
-
-        //console.log(that.positions.mousePointer.HEX.CORD);
 
       }, false);
     },
@@ -843,10 +1162,7 @@ var that = {
         //MOVE = cord is nothing special, and cord is different than before
         if (cordType.type === 0 && !sameCordAsBefore) {
           that.movement.movePlayerFromStartToEnd(from, to);
-        }
-
-/*
-         else
+        } else
         ///////////////////////////////////////
 
         //DONT MOVE = cord is non-interactive area
@@ -863,7 +1179,7 @@ var that = {
         //DEAD ENEMY, loot if in range
         if (cordType.type === 3) {
           console.log('dead enemy! loot?');
-        }*/
+        }
 
       });
 
@@ -884,7 +1200,7 @@ var that = {
     this.utils.fixCanvasSize();
 
     //assign default weapon (a gun) to player
-    Object.assign(this.player.weapon, that.weapons.gun);
+    Object.assign(this.player.weapon, that.weapons.rifle);
 
     this.paint.img.barInit();
     this.paint.img.bgDesertInit();
@@ -901,7 +1217,8 @@ var that = {
 
     //this.paint.img.charMovementAllInit();
 
-    this.paint.img.enemyStillInit();
+    //this.paint.img.enemyStillInit();
+    //this.paint.img.enemyMovingInit();
 
     this.enemies.createEnemy(8,6);
     this.enemies.createEnemy(13,8);

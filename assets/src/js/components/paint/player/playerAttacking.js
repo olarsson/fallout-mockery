@@ -6,14 +6,14 @@ module.exports.playerAttacking = (that, BOXSIZE) => {
 
   if ((Date.now() - that.player.animation.startTime) > 100) {
     that.player.animation.startTime = Date.now();
-    if (!that.player.haveBeenRun) that.player.temp.attackStep++;
+    if (!that.player.temp.haveBeenRun) that.player.temp.attackStep++;
     if (that.player.temp.attackStep >= _anim.attack.totalFrames) {
-      that.player.haveBeenRun = true;
+      that.player.temp.haveBeenRun = true;
       that.player.temp.attackStep = 0;
     }
   }
 
-  let imgIndex = that.CONSTANTS.cordPrioritiesListSmall.indexOf(
+  let imgIndex = that.CONSTANTS.cordPrioritiesList.indexOf(
     that.positions.playerPos.FACING.x +
     that.positions.playerPos.FACING.y
   );

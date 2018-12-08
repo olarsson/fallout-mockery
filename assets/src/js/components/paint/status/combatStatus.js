@@ -4,11 +4,11 @@ module.exports.combatStatus = (that) => {
   that.canvas.fillStyle = "#fff";
   that.canvas.fillText(
     'In combat: ' + that.combat.inCombat,
-    200, 400
+    20, 400
   );
   that.canvas.fillText(
     'actionPoints: ' + that.player.actionPoints + '/' + that.player.DEFAULTS.actionPoints,
-    200, 415
+    20, 415
   );
 
 };

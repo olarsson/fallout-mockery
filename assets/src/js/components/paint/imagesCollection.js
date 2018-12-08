@@ -6,6 +6,13 @@ module.exports.imagesCollection = (that) => {
     playerStill: new Image(),
     playerMoving: new Image(),
 
+    scorpionAttacking: new Image(),
+    scorpionStill: new Image(),
+    scorpionMoving: new Image(),
+    scorpionHit: new Image(),
+    scorpionDeath: new Image(),
+    scorpionDead: new Image(),
+
     bar: new Image(),
     barInit() {
       that.paint.img.bar.src = 'assets/src/img/bar.png';
@@ -35,11 +42,6 @@ module.exports.imagesCollection = (that) => {
     cursorEnemy: new Image(),
     cursorEnemyInit() {
       that.paint.img.cursorEnemy.src = 'assets/src/img/cursor_enemy.png';
-    },
-
-    enemyStill: new Image(),
-    enemyStillInit() {
-      that.paint.img.enemyStill.src = 'assets/src/img/enemy_scorpion_still.png';
     },
 
     bgDesert: new Image(),

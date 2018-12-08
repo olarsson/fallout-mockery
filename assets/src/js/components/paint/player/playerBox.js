@@ -6,4 +6,12 @@ module.exports.playerBox = (that, BOXSIZE) => {
     "blue"
   );
 
+  that.canvas.fillStyle = '#ffddff';
+  that.canvas.font="14px monospace";
+  that.canvas.fillText(
+    that.player.health,
+    project.canvas.positions.playerPos.HEX.PX.x - 20,
+    project.canvas.positions.playerPos.HEX.PX.y
+  );
+
 };
