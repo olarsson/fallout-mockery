@@ -1,0 +1,34 @@
+---
+description: Game architecture and system boundaries
+globs: src/**/*.ts
+alwaysApply: false
+---
+
+# Game Architecture
+
+## Layers
+
+| Layer | Path | Responsibility |
+|-------|------|----------------|
+| Core | `core/`, `config/` | Types, constants, static data |
+| State | `state/` | Initial `GameState` construction |
+| Grid | `grid/` | Coordinates, pathfinding, walkability |
+| Entities | `entities/` | Player/enemy creation |
+| Systems | `systems/` | Input, combat, movement, timers |
+| Render | `render/` | Assets, sprites, draw pipeline |
+| Game | `game/` | Bootstrap, loop, wiring |
+
+## Rules
+
+- `InputSystem` dispatches to `MovementSystem` / `CombatSystem`; it does not contain combat math.
+- `CombatSystem` owns turn queue, engagement, and attack resolution.
+- `MovementSystem` owns step planning and AP deduction during moves.
+- `ActionScheduler` wraps timed sequences; prefer it over raw `setInterval` in new code.
+- `HexGrid` handles pixel↔tile for rendering/input only; pathfinding uses `grid/Pathfinding.ts`.
+
+## Adding combat actions
+
+1. Define types in `core/types.ts`
+2. Implement logic in `systems/CombatSystem.ts`
+3. Add animation state + sprite config if needed
+4. Draw in `render/SpriteRenderer.ts` / `RenderPipeline.ts`

@@ -1,0 +1,14 @@
+---
+description: Core project conventions for Fallout Mockery
+alwaysApply: true
+---
+
+# Fallout Mockery — Project Rules
+
+- TypeScript only in `src/`. No new `.js` game logic files.
+- Use `@/` path alias for imports.
+- Game logic mutates `GameState` through systems in `src/systems/`.
+- Rendering code in `src/render/` must not mutate combat or movement state.
+- Prefer typed interfaces from `src/core/types.ts` over inline object shapes.
+- Do not add `global`, `window.game`, or god-object context blobs.
+- Keep modules small and single-purpose; split files over ~200 lines when adding features.

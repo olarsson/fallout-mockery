@@ -1,0 +1,21 @@
+---
+description: TypeScript standards for game code
+globs: src/**/*.ts
+alwaysApply: false
+---
+
+# TypeScript Conventions
+
+- Enable strict typing; avoid `any` and unchecked casts.
+- Export domain types from `src/core/types.ts`; do not duplicate shapes.
+- Use `as const` for static config (weapons, sprites, constants).
+- Prefer plain functions for pure grid math; use classes for systems with lifecycle.
+- Name systems `*System`, factories `create*`, config files lowercase nouns.
+
+```typescript
+// ❌ BAD — implicit context blob
+function move(ctx: unknown) { (ctx as any).player.x = 1; }
+
+// ✅ GOOD — typed state + focused helper
+function setPlayerPosition(hexGrid: HexGrid, pos: PlayerPosition, x: number, y: number): void
+```
