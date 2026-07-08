@@ -143,8 +143,25 @@ export type ViewportArea = {
 
 export type MapChunkCoord = { x: number; y: number };
 
+export type EnemySnapshot = {
+  id: string;
+  alive: boolean;
+  health: number;
+  actionPoints: number;
+  state: EntityState;
+  facing: Facing;
+  cord: Cord;
+  temp: { tempStep: number; haveBeenRun: boolean };
+};
+
+export type ChunkSnapshot = {
+  walls: Cord[];
+  enemies: EnemySnapshot[];
+};
+
 export type MapState = {
   chunk: MapChunkCoord;
+  visited: Record<string, ChunkSnapshot>;
 };
 
 export type GameState = {

@@ -3,6 +3,7 @@ import { WEAPONS } from '@/config/weapons';
 import type {
   AnimationController,
   EnemyEntity,
+  EnemySnapshot,
   EntityState,
   Facing,
 } from '@/core/types';
@@ -42,6 +43,23 @@ export function createEnemy(hexGrid: HexGrid, x: number, y: number): EnemyEntity
   };
 
   enemy.animation = createEnemyAnimationController(enemy);
+  return enemy;
+}
+
+export function restoreEnemyFromSnapshot(
+  hexGrid: HexGrid,
+  snapshot: EnemySnapshot,
+): EnemyEntity {
+  const enemy = createEnemy(hexGrid, snapshot.cord.x, snapshot.cord.y);
+  enemy.id = snapshot.id;
+  enemy.alive = snapshot.alive;
+  enemy.health = snapshot.health;
+  enemy.engaged = false;
+  enemy.actionPoints = snapshot.actionPoints;
+  enemy.state = snapshot.alive ? snapshot.state : 0;
+  enemy.FACING = { ...snapshot.facing };
+  enemy.temp = { ...snapshot.temp };
+  enemy.animation.startTime = null;
   return enemy;
 }
 

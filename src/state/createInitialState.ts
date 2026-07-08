@@ -42,7 +42,7 @@ export function createInitialState(hexGrid: HexGrid): GameState {
       dynamicCords: [],
       cords: [...STATIC_RESTRICTED_TILES],
     },
-    map: { chunk: { x: 0, y: 0 } },
+    map: { chunk: { x: 0, y: 0 }, visited: {} },
     viewport: { x: 0, y: 0 },
     cursorType: 0,
     pathPreview: [],

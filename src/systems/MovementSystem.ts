@@ -9,7 +9,7 @@ import {
   isSameCord,
 } from '@/grid/RestrictionMap';
 import { CombatSystem } from '@/systems/CombatSystem';
-import { tryMapTransition, tryMapTransitionAtRest } from '@/systems/MapTransitionSystem';
+import { tryMapTransitionAtDestination } from '@/systems/MapTransitionSystem';
 
 export function movePlayerAlongPath(
   ctx: GameContext,
@@ -65,27 +65,16 @@ function runPlayerSteps(
       const step = steps[index];
       if (!step) return;
 
-      const previousCord = { ...state.positions.playerPos.HEX.CORD };
       setPlayerPosition(hexGrid, state.positions.playerPos, step.nextCords.x, step.nextCords.y);
       setPlayerFacing(state.positions.playerPos, toFacing(step.pathDirection));
 
-      if (tryMapTransition(ctx, previousCord, step.nextCords)) {
+      const isLastStep = index === steps.length - 1;
+
+      if (isLastStep && !state.combat.inCombat && tryMapTransitionAtDestination(ctx, destination)) {
         state.player.animation.movementAnimation.stop();
         endDynamicRestrictions(state);
         scheduler.cancel(moveScheduleId);
         return;
-      }
-
-      const isLastStep = index === steps.length - 1;
-
-      if (isLastStep && !state.combat.inCombat) {
-        const restPosition = state.positions.playerPos.HEX.CORD;
-        if (tryMapTransitionAtRest(ctx, restPosition, destination)) {
-          state.player.animation.movementAnimation.stop();
-          endDynamicRestrictions(state);
-          scheduler.cancel(moveScheduleId);
-          return;
-        }
       }
 
       const combat = new CombatSystem(ctx);

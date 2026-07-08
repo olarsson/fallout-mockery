@@ -30,9 +30,9 @@ export const PLAYER_START = {
   y: Math.floor(GRID_ROWS / 2),
 } as const;
 /** How many hexes inward from the entry edge the player spawns on a new chunk. */
-export const CHUNK_ENTRY_INSET = 4;
+export const CHUNK_ENTRY_INSET = 2;
 /** Enter an adjacent chunk when movement ends within this many hexes of a map edge. */
-export const CHUNK_EDGE_TRANSITION_DEPTH = 2;
+export const CHUNK_EDGE_TRANSITION_DEPTH = 1;
 
 export const CORD_PRIORITIES: readonly FacingKey[] = [
   '+-',

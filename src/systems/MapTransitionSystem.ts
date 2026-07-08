@@ -21,6 +21,11 @@ import {
 } from '@/grid/MapGenerator';
 import { getHexDistance } from '@/grid/Pathfinding';
 import { isWalkable } from '@/grid/RestrictionMap';
+import {
+  getChunkSnapshot,
+  restoreChunkEnemies,
+  saveChunkSnapshot,
+} from '@/state/ChunkCache';
 
 const MIN_ENEMY_DISTANCE = 5;
 const ENEMIES_PER_CHUNK = 2;
@@ -38,15 +43,7 @@ function mapEdgeFor(direction: MapEdge): number {
   }
 }
 
-export function detectEdgeCrossing(prev: Cord, next: Cord): MapEdge | null {
-  if (prev.x < MAP_EDGE_EAST && next.x >= MAP_EDGE_EAST) return 'east';
-  if (prev.x > MAP_EDGE_WEST && next.x <= MAP_EDGE_WEST) return 'west';
-  if (prev.y < MAP_EDGE_SOUTH && next.y >= MAP_EDGE_SOUTH) return 'south';
-  if (prev.y > MAP_EDGE_NORTH && next.y <= MAP_EDGE_NORTH) return 'north';
-  return null;
-}
-
-function isInEdgeBand(cord: Cord, edge: MapEdge, depth = CHUNK_EDGE_TRANSITION_DEPTH): boolean {
+function isNearEdge(cord: Cord, edge: MapEdge, depth = CHUNK_EDGE_TRANSITION_DEPTH): boolean {
   const border = mapEdgeFor(edge);
   switch (edge) {
     case 'east':
@@ -60,26 +57,12 @@ function isInEdgeBand(cord: Cord, edge: MapEdge, depth = CHUNK_EDGE_TRANSITION_D
   }
 }
 
-function intentTowardEdge(intent: Cord, edge: MapEdge, depth = CHUNK_EDGE_TRANSITION_DEPTH): boolean {
-  const border = mapEdgeFor(edge);
-  switch (edge) {
-    case 'east':
-      return intent.x >= border - depth;
-    case 'west':
-      return intent.x <= border + depth;
-    case 'south':
-      return intent.y >= border - depth;
-    case 'north':
-      return intent.y <= border + depth;
-  }
-}
-
-/** Transition when movement ends near a playable edge and the click was toward it. */
-export function detectEdgeTransitionAtRest(position: Cord, intent: Cord): MapEdge | null {
-  if (isInEdgeBand(position, 'east') && intentTowardEdge(intent, 'east')) return 'east';
-  if (isInEdgeBand(position, 'west') && intentTowardEdge(intent, 'west')) return 'west';
-  if (isInEdgeBand(position, 'south') && intentTowardEdge(intent, 'south')) return 'south';
-  if (isInEdgeBand(position, 'north') && intentTowardEdge(intent, 'north')) return 'north';
+/** Transition when the movement destination is within the edge band. */
+export function detectEdgeTransitionAtDestination(destination: Cord): MapEdge | null {
+  if (isNearEdge(destination, 'east')) return 'east';
+  if (isNearEdge(destination, 'west')) return 'west';
+  if (isNearEdge(destination, 'south')) return 'south';
+  if (isNearEdge(destination, 'north')) return 'north';
   return null;
 }
 
@@ -174,6 +157,15 @@ export function loadMapChunk(
   const { state, hexGrid } = ctx;
 
   state.map.chunk = chunk;
+
+  const cached = getChunkSnapshot(state, chunk);
+  if (cached) {
+    state.restricted.cords = cached.walls.map((wall) => ({ x: wall.x, y: wall.y }));
+    state.enemies = restoreChunkEnemies(hexGrid, cached);
+    setPlayerPosition(hexGrid, state.positions.playerPos, playerCord.x, playerCord.y);
+    return;
+  }
+
   state.restricted.cords = generateChunkWalls({
     chunk,
     entryEdge,
@@ -183,32 +175,20 @@ export function loadMapChunk(
   setPlayerPosition(hexGrid, state.positions.playerPos, playerCord.x, playerCord.y);
 }
 
-export function tryMapTransition(ctx: GameContext, prevCord: Cord, nextCord: Cord): boolean {
+export function tryMapTransitionAtDestination(ctx: GameContext, destination: Cord): boolean {
   const { state } = ctx;
   if (state.combat.inCombat || state.gameOver) return false;
 
-  const edge = detectEdgeCrossing(prevCord, nextCord);
+  const edge = detectEdgeTransitionAtDestination(destination);
   if (!edge) return false;
 
-  return applyMapTransition(ctx, edge, nextCord);
-}
-
-export function tryMapTransitionAtRest(
-  ctx: GameContext,
-  position: Cord,
-  intent: Cord,
-): boolean {
-  const { state } = ctx;
-  if (state.combat.inCombat || state.gameOver) return false;
-
-  const edge = detectEdgeTransitionAtRest(position, intent);
-  if (!edge) return false;
-
+  const position = state.positions.playerPos.HEX.CORD;
   return applyMapTransition(ctx, edge, position);
 }
 
 function applyMapTransition(ctx: GameContext, edge: MapEdge, anchor: Cord): boolean {
   const { state } = ctx;
+  saveChunkSnapshot(state);
   const chunk = nextChunk(state.map.chunk, edge);
   const spawnCord = playerCordAfterTransition(edge, anchor);
   loadMapChunk(ctx, chunk, oppositeEdge(edge), spawnCord);
