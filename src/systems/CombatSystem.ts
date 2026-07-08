@@ -135,7 +135,7 @@ export class CombatSystem {
 
       state.player.stopActions = false;
 
-      if (this.tryLeaveCombatIfAllEnemiesDead()) return;
+      if (this.tryLeaveCombatIfFinished()) return;
 
       if (state.player.actionPoints === 0) {
         this.moveToNextInQueue();
@@ -252,7 +252,7 @@ export class CombatSystem {
   moveToNextInQueue(): void {
     const { state } = this.ctx;
 
-    if (this.tryLeaveCombatIfAllEnemiesDead()) return;
+    if (this.tryLeaveCombatIfFinished()) return;
 
     this.setNextInQueue();
 
@@ -304,12 +304,17 @@ export class CombatSystem {
     state.combat.inCombat = false;
     this.resetActionPoints(state.player);
     this.clearQueue();
+    for (const enemy of state.enemies) {
+      enemy.engaged = false;
+    }
   }
 
-  private tryLeaveCombatIfAllEnemiesDead(): boolean {
+  private tryLeaveCombatIfFinished(): boolean {
     const { state } = this.ctx;
-    if (state.enemies.some((enemy) => enemy.alive)) return false;
     if (!state.combat.inCombat) return false;
+
+    const anyEngagedAlive = state.enemies.some((enemy) => enemy.alive && enemy.engaged);
+    if (anyEngagedAlive) return false;
 
     this.leaveCombat();
     return true;

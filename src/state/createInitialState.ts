@@ -1,7 +1,7 @@
-import { INITIAL_ENEMIES, STATIC_RESTRICTED_TILES } from '@/core/constants';
+import { INITIAL_ENEMIES, PLAYER_START, STATIC_RESTRICTED_TILES } from '@/core/constants';
 import type { GameState } from '@/core/types';
 import { createEnemy } from '@/entities/createEnemy';
-import { createPlayer } from '@/entities/createPlayer';
+import { createPlayer, setPlayerPosition } from '@/entities/createPlayer';
 import type { HexGrid } from '@/grid/HexGrid';
 
 export function createInitialState(hexGrid: HexGrid): GameState {
@@ -47,6 +47,8 @@ export function createInitialState(hexGrid: HexGrid): GameState {
     cursorType: 0,
     pathPreview: [],
   };
+
+  setPlayerPosition(hexGrid, state.positions.playerPos, PLAYER_START.x, PLAYER_START.y);
 
   return state;
 }

@@ -9,7 +9,7 @@ import {
   isSameCord,
 } from '@/grid/RestrictionMap';
 import { CombatSystem } from '@/systems/CombatSystem';
-import { tryMapTransition } from '@/systems/MapTransitionSystem';
+import { tryMapTransition, tryMapTransitionAtRest } from '@/systems/MapTransitionSystem';
 
 export function movePlayerAlongPath(
   ctx: GameContext,
@@ -35,16 +35,17 @@ export function movePlayerAlongPath(
     const maxSteps = Math.floor(state.player.actionPoints / state.player.moveCost);
     const allowed = steps.slice(0, maxSteps);
     subtractActionPoints(state.player, allowed.length * state.player.moveCost);
-    runPlayerSteps(ctx, allowed);
+    runPlayerSteps(ctx, allowed, to);
     return;
   }
 
-  runPlayerSteps(ctx, steps);
+  runPlayerSteps(ctx, steps, to);
 }
 
 function runPlayerSteps(
   ctx: GameContext,
   steps: ReturnType<typeof buildMovePath>,
+  destination: Cord,
 ): void {
   const { state, hexGrid, scheduler } = ctx;
   if (steps.length === 0) {
@@ -75,11 +76,22 @@ function runPlayerSteps(
         return;
       }
 
+      const isLastStep = index === steps.length - 1;
+
+      if (isLastStep && !state.combat.inCombat) {
+        const restPosition = state.positions.playerPos.HEX.CORD;
+        if (tryMapTransitionAtRest(ctx, restPosition, destination)) {
+          state.player.animation.movementAnimation.stop();
+          endDynamicRestrictions(state);
+          scheduler.cancel(moveScheduleId);
+          return;
+        }
+      }
+
       const combat = new CombatSystem(ctx);
       combat.checkProximityCombat();
 
       const enteredCombat = !startedInCombat && state.combat.inCombat;
-      const isLastStep = index === steps.length - 1;
 
       if (enteredCombat || isLastStep) {
         state.player.animation.movementAnimation.stop();

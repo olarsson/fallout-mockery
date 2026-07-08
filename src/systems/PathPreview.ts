@@ -1,10 +1,6 @@
 import type { Cord, GameState, TileQueryResult } from '@/core/types';
-import { buildMovePath } from '@/grid/Pathfinding';
-import {
-  beginDynamicRestrictions,
-  endDynamicRestrictions,
-  isSameCord,
-} from '@/grid/RestrictionMap';
+import { findWalkPath } from '@/grid/Pathfinding';
+import { isSameCord } from '@/grid/RestrictionMap';
 
 const OUT_OF_COMBAT_MAX_STEPS = 20;
 
@@ -15,11 +11,7 @@ export function computePathPreview(state: GameState, from: Cord, to: Cord): Cord
 
   if (maxSteps <= 0) return [];
 
-  beginDynamicRestrictions(state);
-  const steps = buildMovePath(state, from, to, maxSteps);
-  endDynamicRestrictions(state);
-
-  return steps.map((step) => step.nextCords);
+  return findWalkPath(state, from, to, maxSteps);
 }
 
 export function updatePathPreview(

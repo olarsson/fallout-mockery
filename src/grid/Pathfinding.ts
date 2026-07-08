@@ -1,6 +1,6 @@
 import { CORD_PRIORITIES, GRID_COLS } from '@/core/constants';
 import type { Cord, Facing, FacingKey, GameState, NextCordResult, PathDirection } from '@/core/types';
-import { isInGridBounds } from '@/grid/hexNeighbors';
+import { cordKey, getHexNeighbors, isInGridBounds } from '@/grid/hexNeighbors';
 import { isWalkable } from '@/grid/RestrictionMap';
 
 export function getNextCord(
@@ -226,39 +226,78 @@ export function getHexDistance(state: GameState, from: Cord, to: Cord): number {
   return pathLength;
 }
 
+function aliveEnemyTiles(state: GameState): Set<string> {
+  const blocked = new Set<string>();
+  for (const enemy of state.enemies) {
+    if (enemy.alive) {
+      blocked.add(cordKey(enemy.HEX.CORD));
+    }
+  }
+  return blocked;
+}
+
+function extraBlockedTiles(state: GameState): Set<string> {
+  const blocked = aliveEnemyTiles(state);
+  if (state.restricted.dynamic) {
+    for (const cord of state.restricted.dynamicCords) {
+      blocked.add(cordKey(cord));
+    }
+  }
+  return blocked;
+}
+
+/** Shortest walkable route using BFS — handles walls without greedy detours. */
+export function findWalkPath(
+  state: GameState,
+  from: Cord,
+  to: Cord,
+  maxSteps: number,
+): Cord[] {
+  if (from.x === to.x && from.y === to.y) return [];
+  if (!isWalkable(state, to.x, to.y)) return [];
+
+  const blocked = extraBlockedTiles(state);
+  const visited = new Set<string>([cordKey(from)]);
+  const queue: { cord: Cord; path: Cord[] }[] = [{ cord: from, path: [] }];
+
+  while (queue.length > 0) {
+    const current = queue.shift();
+    if (!current) break;
+
+    if (current.cord.x === to.x && current.cord.y === to.y) {
+      return current.path;
+    }
+
+    if (current.path.length >= maxSteps) continue;
+
+    for (const neighbor of getHexNeighbors(current.cord.x, current.cord.y)) {
+      const key = cordKey(neighbor);
+      if (visited.has(key) || blocked.has(key)) continue;
+      if (!isWalkable(state, neighbor.x, neighbor.y)) continue;
+
+      visited.add(key);
+      queue.push({ cord: neighbor, path: [...current.path, neighbor] });
+    }
+  }
+
+  return [];
+}
+
 export function buildMovePath(
   state: GameState,
   from: Cord,
   to: Cord,
   maxSteps: number,
 ): { nextCords: Cord; pathDirection: ReturnType<typeof calculatePathDirection> }[] {
-  const steps: { nextCords: Cord; pathDirection: ReturnType<typeof calculatePathDirection> }[] = [];
-  let previousDestination = { ...from };
+  const path = findWalkPath(state, from, to, maxSteps);
 
-  for (let i = 0; i < maxSteps; i += 1) {
-    state.restricted.dynamicCords.push(previousDestination);
-
-    const pathDirection = calculatePathDirection(previousDestination, to);
-    const nextCords = getNextCord(
-      state,
-      previousDestination.x,
-      previousDestination.y,
-      pathDirection.directionX,
-      pathDirection.directionY,
-      true,
-    );
-
-    if (!nextCords) break;
-
-    previousDestination = nextCords.newCords;
-    steps.push({ nextCords: nextCords.newCords, pathDirection });
-
-    if (nextCords.newCords.x === to.x && nextCords.newCords.y === to.y) {
-      break;
-    }
-  }
-
-  return steps;
+  return path.map((nextCords, index) => {
+    const previous = index === 0 ? from : path[index - 1] ?? from;
+    return {
+      nextCords,
+      pathDirection: calculatePathDirection(previous, nextCords),
+    };
+  });
 }
 
 export function toFacing(direction: PathDirection): Facing {
