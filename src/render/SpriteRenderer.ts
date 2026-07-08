@@ -77,7 +77,8 @@ export function drawPlayer(
   }
 
   if (player.state === 2) {
-    advanceAttackFrame(player, TIMING.attackFrameMs);
+    const totalFrames = player.animations.attack.totalFrames ?? 5;
+    advanceAttackFrame(player, TIMING.attackFrameMs, totalFrames);
     drawSprite(
       ctx,
       assets,
@@ -154,11 +155,18 @@ function resolveMoveRow(row: number, positions: GameState['positions']): number 
   return row;
 }
 
-function advanceAttackFrame(player: PlayerEntity, frameMs: number): void {
+function advanceAttackFrame(player: PlayerEntity, frameMs: number, totalFrames: number): void {
+  if (player.temp.haveBeenRun) return;
   if (!player.animation.startTime) player.animation.startTime = Date.now();
   if (Date.now() - player.animation.startTime > frameMs) {
     player.animation.startTime = Date.now();
-    player.temp.attackStep += 1;
+    const nextStep = player.temp.attackStep + 1;
+    if (nextStep >= totalFrames) {
+      player.temp.haveBeenRun = true;
+      player.temp.attackStep = totalFrames - 1;
+      return;
+    }
+    player.temp.attackStep = nextStep;
   }
 }
 

@@ -33,13 +33,13 @@ export function createPlayer(): PlayerEntity {
 function createAnimationController(
   entity: { state: EntityState; temp: { attackStep: number; haveBeenRun: boolean } },
 ): AnimationController {
-  return {
+  const controller: AnimationController = {
     startTime: null,
 
     init(state: EntityState) {
       entity.temp.haveBeenRun = false;
       entity.temp.attackStep = 0;
-      this.startTime = Date.now();
+      controller.startTime = Date.now();
       entity.state = state;
     },
 
@@ -52,8 +52,11 @@ function createAnimationController(
         entity.state = 1;
         entity.temp.haveBeenRun = false;
         entity.temp.attackStep = 0;
+        controller.startTime = Date.now();
       },
       stop() {
+        entity.temp.attackStep = 0;
+        controller.startTime = null;
         entity.state = 0;
       },
     },
@@ -63,12 +66,18 @@ function createAnimationController(
         entity.state = 2;
         entity.temp.haveBeenRun = false;
         entity.temp.attackStep = 0;
+        controller.startTime = Date.now();
       },
       stop() {
+        entity.temp.attackStep = 0;
+        entity.temp.haveBeenRun = false;
+        controller.startTime = null;
         entity.state = 0;
       },
     },
   };
+
+  return controller;
 }
 
 export function setPlayerFacing(playerPos: { FACING: Facing }, facing: Facing): void {
