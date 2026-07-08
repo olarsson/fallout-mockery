@@ -39,6 +39,7 @@ body {
   flex: 425 0 0;
   min-height: 0;
   background-color: #b1b1b1;
+  cursor: none;
 }
 
 #bar-panel {

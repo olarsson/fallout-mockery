@@ -1,5 +1,19 @@
 import type { SpriteSheetConfig } from '@/core/types';
 
+function feetAnchor(width: number, height: number): { offsetX: number; offsetY: number } {
+  return { offsetX: width / 2, offsetY: height };
+}
+
+const playerStill = feetAnchor(36, 70);
+const playerMoving = feetAnchor(44, 68);
+const playerAttack = feetAnchor(64, 79);
+const playerHit = feetAnchor(68, 68);
+const scorpionStill = feetAnchor(59, 49);
+const scorpionMoving = feetAnchor(59, 48);
+const scorpionAttack = feetAnchor(86, 68);
+const scorpionHit = feetAnchor(59, 48);
+const scorpionDeath = feetAnchor(53.8, 34.83);
+
 export const PLAYER_SPRITES = {
   stillBasic: {
     imageKey: 'playerStill',
@@ -9,8 +23,7 @@ export const PLAYER_SPRITES = {
     height: 70,
     clipX: 0,
     clipY: 70,
-    offsetX: 0,
-    offsetY: 50,
+    ...playerStill,
   },
   movingBasic: {
     imageKey: 'playerMoving',
@@ -21,8 +34,7 @@ export const PLAYER_SPRITES = {
     height: 68,
     clipX: 44,
     clipY: 68,
-    offsetX: 0,
-    offsetY: 50,
+    ...playerMoving,
   },
   gunFireBasic: {
     imageKey: 'playerAttacking',
@@ -33,8 +45,7 @@ export const PLAYER_SPRITES = {
     height: 79,
     clipX: 64,
     clipY: 79,
-    offsetX: 10,
-    offsetY: 58,
+    ...playerAttack,
   },
   /** Placeholder until a proper multi-frame hit sheet is added. */
   hitBasic: {
@@ -46,8 +57,7 @@ export const PLAYER_SPRITES = {
     height: 68,
     clipX: 0,
     clipY: 68,
-    offsetX: 0,
-    offsetY: 50,
+    ...playerHit,
   },
 } as const satisfies Record<string, SpriteSheetConfig>;
 
@@ -60,8 +70,7 @@ export const ENEMY_SPRITES = {
     height: 49,
     clipX: 59,
     clipY: 49,
-    offsetX: 0,
-    offsetY: 20,
+    ...scorpionStill,
   },
   scorpionMoving: {
     imageKey: 'scorpionMoving',
@@ -72,8 +81,7 @@ export const ENEMY_SPRITES = {
     height: 48,
     clipX: 59,
     clipY: 48,
-    offsetX: 0,
-    offsetY: 20,
+    ...scorpionMoving,
   },
   scorpionAttack: {
     imageKey: 'scorpionAttacking',
@@ -84,8 +92,7 @@ export const ENEMY_SPRITES = {
     height: 68,
     clipX: 86,
     clipY: 68,
-    offsetX: 10,
-    offsetY: 40,
+    ...scorpionAttack,
   },
   scorpionHit: {
     imageKey: 'scorpionHit',
@@ -96,8 +103,7 @@ export const ENEMY_SPRITES = {
     height: 48,
     clipX: 59,
     clipY: 48,
-    offsetX: 0,
-    offsetY: 20,
+    ...scorpionHit,
   },
   scorpionDeath: {
     imageKey: 'scorpionDeath',
@@ -108,8 +114,7 @@ export const ENEMY_SPRITES = {
     height: 34.83,
     clipX: 53.8,
     clipY: 34.83,
-    offsetX: 0,
-    offsetY: 10,
+    ...scorpionDeath,
   },
   scorpionDead: {
     imageKey: 'scorpionDead',
@@ -119,8 +124,7 @@ export const ENEMY_SPRITES = {
     height: 34.83,
     clipX: 0,
     clipY: 34.83,
-    offsetX: 0,
-    offsetY: 10,
+    ...scorpionDeath,
   },
 } as const satisfies Record<string, SpriteSheetConfig>;
 

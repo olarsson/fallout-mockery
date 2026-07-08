@@ -105,7 +105,7 @@ export function drawEnemy(
 
   if (enemy.state === 0) {
     if (enemy.alive) {
-      drawSprite(ctx, assets, enemy.animations.still, tileX - 5, tileY - 15, 0, row);
+      drawSprite(ctx, assets, enemy.animations.still, tileX, tileY, 0, row);
     } else if (enemy.animations.dead) {
       drawSprite(ctx, assets, enemy.animations.dead, tileX, tileY, 0, row);
     }
@@ -118,8 +118,8 @@ export function drawEnemy(
       ctx,
       assets,
       enemy.animations.moving,
-      tileX - 5,
-      tileY - 15,
+      tileX,
+      tileY,
       enemy.temp.tempStep,
       row,
     );
@@ -142,7 +142,7 @@ export function drawEnemy(
 
   if (enemy.state === 3 && enemy.animations.hit) {
     advanceEnemyAttackFrame(enemy, enemy.animations.hit.totalFrames ?? 6);
-    drawSprite(ctx, assets, enemy.animations.hit, tileX - 5, tileY - 15, enemy.temp.tempStep, row);
+    drawSprite(ctx, assets, enemy.animations.hit, tileX, tileY, enemy.temp.tempStep, row);
     return;
   }
 

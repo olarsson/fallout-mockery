@@ -4,15 +4,12 @@ import {
   GRID_COLS,
   GRID_ROWS,
   INITIAL_ENEMIES,
-  MAP_EDGE_EAST,
-  MAP_EDGE_NORTH,
-  MAP_EDGE_SOUTH,
-  MAP_EDGE_WEST,
 } from '@/core/constants';
 import type { Cord, GameContext, MapChunkCoord } from '@/core/types';
 import { createEnemy } from '@/entities/createEnemy';
 import { setPlayerPosition } from '@/entities/createPlayer';
 import { cordKey } from '@/grid/hexNeighbors';
+import type { MapEdges } from '@/grid/FalloutGeometry';
 import {
   entryPositionForPlayer,
   generateChunkWalls,
@@ -30,21 +27,26 @@ import {
 const MIN_ENEMY_DISTANCE = 5;
 const ENEMIES_PER_CHUNK = 2;
 
-function mapEdgeFor(direction: MapEdge): number {
+function mapEdgeFor(edges: MapEdges, direction: MapEdge): number {
   switch (direction) {
     case 'east':
-      return MAP_EDGE_EAST;
+      return edges.east;
     case 'west':
-      return MAP_EDGE_WEST;
+      return edges.west;
     case 'south':
-      return MAP_EDGE_SOUTH;
+      return edges.south;
     case 'north':
-      return MAP_EDGE_NORTH;
+      return edges.north;
   }
 }
 
-function isNearEdge(cord: Cord, edge: MapEdge, depth = CHUNK_EDGE_TRANSITION_DEPTH): boolean {
-  const border = mapEdgeFor(edge);
+function isNearEdge(
+  cord: Cord,
+  edges: MapEdges,
+  edge: MapEdge,
+  depth = CHUNK_EDGE_TRANSITION_DEPTH,
+): boolean {
+  const border = mapEdgeFor(edges, edge);
   switch (edge) {
     case 'east':
       return cord.x >= border - depth;
@@ -58,11 +60,14 @@ function isNearEdge(cord: Cord, edge: MapEdge, depth = CHUNK_EDGE_TRANSITION_DEP
 }
 
 /** Transition when the movement destination is within the edge band. */
-export function detectEdgeTransitionAtDestination(destination: Cord): MapEdge | null {
-  if (isNearEdge(destination, 'east')) return 'east';
-  if (isNearEdge(destination, 'west')) return 'west';
-  if (isNearEdge(destination, 'south')) return 'south';
-  if (isNearEdge(destination, 'north')) return 'north';
+export function detectEdgeTransitionAtDestination(
+  destination: Cord,
+  edges: MapEdges,
+): MapEdge | null {
+  if (isNearEdge(destination, edges, 'east')) return 'east';
+  if (isNearEdge(destination, edges, 'west')) return 'west';
+  if (isNearEdge(destination, edges, 'south')) return 'south';
+  if (isNearEdge(destination, edges, 'north')) return 'north';
   return null;
 }
 
@@ -79,16 +84,20 @@ export function nextChunk(chunk: MapChunkCoord, edge: MapEdge): MapChunkCoord {
   }
 }
 
-export function playerCordAfterTransition(edge: MapEdge, current: Cord): Cord {
+export function playerCordAfterTransition(
+  edge: MapEdge,
+  current: Cord,
+  edges: MapEdges,
+): Cord {
   switch (edge) {
     case 'east':
       return { x: CHUNK_ENTRY_INSET, y: current.y };
     case 'west':
-      return { x: MAP_EDGE_EAST - CHUNK_ENTRY_INSET, y: current.y };
+      return { x: edges.east - CHUNK_ENTRY_INSET, y: current.y };
     case 'south':
       return { x: current.x, y: CHUNK_ENTRY_INSET };
     case 'north':
-      return { x: current.x, y: MAP_EDGE_SOUTH - CHUNK_ENTRY_INSET };
+      return { x: current.x, y: edges.south - CHUNK_ENTRY_INSET };
   }
 }
 
@@ -176,10 +185,10 @@ export function loadMapChunk(
 }
 
 export function tryMapTransitionAtDestination(ctx: GameContext, destination: Cord): boolean {
-  const { state } = ctx;
+  const { state, hexGrid } = ctx;
   if (state.combat.inCombat || state.gameOver) return false;
 
-  const edge = detectEdgeTransitionAtDestination(destination);
+  const edge = detectEdgeTransitionAtDestination(destination, hexGrid.mapEdges);
   if (!edge) return false;
 
   const position = state.positions.playerPos.HEX.CORD;
@@ -190,7 +199,7 @@ function applyMapTransition(ctx: GameContext, edge: MapEdge, anchor: Cord): bool
   const { state } = ctx;
   saveChunkSnapshot(state);
   const chunk = nextChunk(state.map.chunk, edge);
-  const spawnCord = playerCordAfterTransition(edge, anchor);
+  const spawnCord = playerCordAfterTransition(edge, anchor, ctx.hexGrid.mapEdges);
   loadMapChunk(ctx, chunk, oppositeEdge(edge), spawnCord);
   return true;
 }

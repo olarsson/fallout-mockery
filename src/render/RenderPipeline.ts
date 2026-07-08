@@ -1,5 +1,8 @@
+import { CURSOR_SIZE } from '@/core/constants';
 import type { GameState, TileType } from '@/core/types';
+import { hexDepth } from '@/grid/FalloutGeometry';
 import type { HexGrid } from '@/grid/HexGrid';
+import { isInGridBounds } from '@/grid/hexNeighbors';
 import type { AssetLoader } from '@/render/AssetLoader';
 import { drawEnemy, drawPlayer } from '@/render/SpriteRenderer';
 
@@ -69,24 +72,62 @@ export class RenderPipeline {
   }
 
   private drawEntities(ctx: CanvasRenderingContext2D, state: GameState): void {
-    for (const enemy of state.enemies) {
-      const tile = this.hexGrid.getPXAtColRow(enemy.HEX.CORD.x, enemy.HEX.CORD.y);
-      const hexColor = enemy.alive ? ENEMY_HEX_ALIVE : ENEMY_HEX_DEAD;
-      this.hexGrid.drawHexAtColRow(ctx, enemy.HEX.CORD.x, enemy.HEX.CORD.y, hexColor);
-      drawEnemy(ctx, this.assets, enemy, tile.x, tile.y);
-    }
-
     const playerCord = state.positions.playerPos.HEX.CORD;
-    this.hexGrid.drawHexAtColRow(ctx, playerCord.x, playerCord.y, 'blue');
+    const drawables = [
+      ...state.enemies.map((enemy) => ({
+        cord: enemy.HEX.CORD,
+        draw: () => {
+          const tile = this.hexGrid.getPXAtColRow(enemy.HEX.CORD.x, enemy.HEX.CORD.y);
+          const hexColor = enemy.alive ? ENEMY_HEX_ALIVE : ENEMY_HEX_DEAD;
+          this.hexGrid.drawHexAtColRow(ctx, enemy.HEX.CORD.x, enemy.HEX.CORD.y, hexColor);
+          drawEnemy(ctx, this.assets, enemy, tile.x, tile.y);
+        },
+      })),
+      {
+        cord: playerCord,
+        draw: () => {
+          this.hexGrid.drawHexAtColRow(ctx, playerCord.x, playerCord.y, 'blue');
+          drawPlayer(ctx, this.assets, state);
+        },
+      },
+    ];
 
-    drawPlayer(ctx, this.assets, state);
+    drawables.sort(
+      (a, b) => hexDepth(a.cord.x, a.cord.y) - hexDepth(b.cord.x, b.cord.y),
+    );
+
+    for (const drawable of drawables) {
+      drawable.draw();
+    }
   }
 
   private drawCursor(ctx: CanvasRenderingContext2D, state: GameState): void {
     const cursorKey = CURSOR_KEYS[state.cursorType] ?? 'cursorStandard';
     const cursor = this.assets.get(cursorKey);
-    const { x, y } = state.positions.mousePointer.HEX.PX;
-    ctx.drawImage(cursor, 0, 0, 28, 23, x, y, 28, 23);
+    const { x: mouseX, y: mouseY } = state.positions.mousePointer.HEX.PX;
+    const { x: column, y: row } = state.positions.mousePointer.HEX.CORD;
+
+    let anchorX = mouseX;
+    let anchorY = mouseY;
+    if (isInGridBounds(column, row)) {
+      const hexCenter = this.hexGrid.getPXAtColRow(column, row);
+      anchorX = hexCenter.x;
+      anchorY = hexCenter.y;
+    }
+
+    const drawX = anchorX - CURSOR_SIZE.hotspotX;
+    const drawY = anchorY - CURSOR_SIZE.hotspotY;
+    ctx.drawImage(
+      cursor,
+      0,
+      0,
+      CURSOR_SIZE.width,
+      CURSOR_SIZE.height,
+      drawX,
+      drawY,
+      CURSOR_SIZE.width,
+      CURSOR_SIZE.height,
+    );
   }
 
   private drawBar(ctx: CanvasRenderingContext2D): void {

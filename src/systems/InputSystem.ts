@@ -1,5 +1,6 @@
 import { BAR_HEIGHT, CANVAS_HEIGHT, CANVAS_WIDTH } from '@/core/constants';
 import type { GameContext } from '@/core/types';
+import { isInGridBounds } from '@/grid/hexNeighbors';
 import { isSameCord } from '@/grid/RestrictionMap';
 import { queryTile } from '@/grid/TileQuery';
 import { CombatSystem } from '@/systems/CombatSystem';
@@ -43,10 +44,8 @@ export class InputSystem {
     if (state.gameOver) return;
 
     const point = this.canvasPoint(event);
-    state.positions.mousePointer.HEX.PX.x = point.x;
-    state.positions.mousePointer.HEX.PX.y = point.y;
-
     const tile = hexGrid.getSelectedTile(point.x, point.y);
+    state.positions.mousePointer.HEX.PX = { x: point.x, y: point.y };
     state.positions.mousePointer.HEX.CORD = { x: tile.column, y: tile.row };
 
     const tileInfo = queryTile(state, state.positions.mousePointer.HEX.CORD);
@@ -62,7 +61,7 @@ export class InputSystem {
     const point = this.canvasPoint(event);
     const tile = hexGrid.getSelectedTile(point.x, point.y);
 
-    if (tile.column >= 0 && tile.row >= 0) {
+    if (isInGridBounds(tile.column, tile.row)) {
       const px = hexGrid.getPXAtColRow(tile.column, tile.row);
       state.positions.clickPos.HEX = {
         PX: { x: px.x, y: px.y },

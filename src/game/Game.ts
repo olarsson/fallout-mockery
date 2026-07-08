@@ -1,4 +1,4 @@
-import { HEX_RADIUS } from '@/core/constants';
+import { CANVAS_HEIGHT, CANVAS_WIDTH, GRID_COLS, GRID_ROWS } from '@/core/constants';
 import type { GameContext } from '@/core/types';
 import { GameLoop } from '@/game/GameLoop';
 import { HexGrid } from '@/grid/HexGrid';
@@ -35,7 +35,7 @@ export class Game {
     private readonly barCanvas: HTMLCanvasElement,
     private readonly ui: GameUiElements,
   ) {
-    this.hexGrid = new HexGrid(HEX_RADIUS);
+    this.hexGrid = new HexGrid(GRID_COLS, GRID_ROWS, CANVAS_WIDTH, CANVAS_HEIGHT);
     this.state = createInitialState(this.hexGrid);
     this.ctx = {
       state: this.state,
