@@ -177,6 +177,37 @@ export function getStraightPathBetweenCords(
   return { pathLength, isPathPossible };
 }
 
+/** Hex step count between tiles, ignoring blocked terrain (used for aggro range). */
+export function getHexDistance(state: GameState, from: Cord, to: Cord): number {
+  if (from.x === to.x && from.y === to.y) return 0;
+
+  let previousDestination = { ...from };
+  let pathLength = 0;
+
+  for (let i = 0; i < GRID_COLS; i += 1) {
+    const pathDirection = calculatePathDirection(previousDestination, to);
+    const nextCords = getNextCord(
+      state,
+      previousDestination.x,
+      previousDestination.y,
+      pathDirection.directionX,
+      pathDirection.directionY,
+      false,
+    );
+
+    if (!nextCords) break;
+
+    pathLength += 1;
+    previousDestination = nextCords.newCords;
+
+    if (nextCords.newCords.x === to.x && nextCords.newCords.y === to.y) {
+      break;
+    }
+  }
+
+  return pathLength;
+}
+
 export function buildMovePath(
   state: GameState,
   from: Cord,

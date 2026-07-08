@@ -4,13 +4,22 @@ type IntervalHandle = ReturnType<typeof setInterval>;
 
 export class ActionScheduler {
   private nextId = 0;
+  private generation = 0;
   private handles = new Map<number, IntervalHandle>();
+  private timeoutHandles = new Set<ReturnType<typeof setTimeout>>();
 
   stop(): void {
+    this.generation += 1;
+
     for (const handle of this.handles.values()) {
       clearInterval(handle);
     }
     this.handles.clear();
+
+    for (const handle of this.timeoutHandles) {
+      clearTimeout(handle);
+    }
+    this.timeoutHandles.clear();
   }
 
   scheduleRepeating(
@@ -19,17 +28,26 @@ export class ActionScheduler {
     onTick: (tick: number) => void,
     onComplete?: () => void,
   ): number {
+    const runGeneration = this.generation;
     let currentTick = 0;
     const id = (this.nextId += 1);
 
     const handle = setInterval(() => {
+      if (runGeneration !== this.generation) {
+        clearInterval(handle);
+        this.handles.delete(id);
+        return;
+      }
+
       currentTick += 1;
       onTick(currentTick);
 
       if (currentTick >= ticks) {
         clearInterval(handle);
         this.handles.delete(id);
-        onComplete?.();
+        if (runGeneration === this.generation) {
+          onComplete?.();
+        }
       }
     }, intervalMs);
 
@@ -38,7 +56,13 @@ export class ActionScheduler {
   }
 
   delay(ms: number, callback: () => void): void {
-    setTimeout(callback, ms);
+    const runGeneration = this.generation;
+    const handle = setTimeout(() => {
+      this.timeoutHandles.delete(handle);
+      if (runGeneration !== this.generation) return;
+      callback();
+    }, ms);
+    this.timeoutHandles.add(handle);
   }
 
   cancel(id: number): void {

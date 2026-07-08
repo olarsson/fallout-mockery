@@ -13,6 +13,7 @@ export function createInitialState(hexGrid: HexGrid): GameState {
       queuePos: 0,
       queue: [],
     },
+    gameOver: false,
     positions: {
       mousePointer: {
         HEX: {
@@ -46,4 +47,18 @@ export function createInitialState(hexGrid: HexGrid): GameState {
   };
 
   return state;
+}
+
+export function resetGameState(state: GameState, hexGrid: HexGrid): void {
+  const fresh = createInitialState(hexGrid);
+  const viewport = state.viewport;
+
+  state.player = fresh.player;
+  state.enemies = fresh.enemies;
+  state.combat = fresh.combat;
+  state.gameOver = fresh.gameOver;
+  state.positions = fresh.positions;
+  state.restricted = fresh.restricted;
+  state.cursorType = fresh.cursorType;
+  state.viewport = viewport;
 }

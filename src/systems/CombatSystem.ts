@@ -6,13 +6,54 @@ import {
 import type { Cord, EnemyEntity, GameContext } from '@/core/types';
 import { setEnemyFacing } from '@/entities/createEnemy';
 import { setPlayerFacing } from '@/entities/createPlayer';
-import { calculatePathDirection, getStraightPathBetweenCords, toFacing } from '@/grid/Pathfinding';
+import { calculatePathDirection, getHexDistance, getStraightPathBetweenCords, toFacing } from '@/grid/Pathfinding';
 import { findEnemyAt } from '@/grid/TileQuery';
 import { randomInt } from '@/utils/random';
 import { moveEnemyAlongPath } from '@/systems/MovementSystem';
 
 export class CombatSystem {
   constructor(private readonly ctx: GameContext) {}
+
+  /** Engage enemies within aggro range and start combat when any are nearby. */
+  checkProximityCombat(): void {
+    const { state } = this.ctx;
+    const playerCord = state.positions.playerPos.HEX.CORD;
+    let anyInRange = false;
+
+    for (const enemy of state.enemies) {
+      if (!enemy.alive) continue;
+
+      const distance = getHexDistance(state, playerCord, enemy.HEX.CORD);
+
+      if (distance <= enemy.aggroRange) {
+        enemy.engaged = true;
+        anyInRange = true;
+
+        setEnemyFacing(
+          enemy,
+          toFacing(calculatePathDirection(enemy.HEX.CORD, playerCord)),
+        );
+
+        if (state.combat.inCombat) {
+          this.addToQueue(enemy);
+        }
+      }
+    }
+
+    if (anyInRange && !state.combat.inCombat) {
+      this.enterCombat();
+    }
+  }
+
+  endPlayerTurn(): void {
+    const { state } = this.ctx;
+    if (state.gameOver || !state.combat.inCombat || state.player.stopActions) return;
+
+    const current = state.combat.queue[state.combat.queuePos];
+    if (!current || !('id' in current) || current.id !== '_player') return;
+
+    this.moveToNextInQueue();
+  }
 
   tryCombat(from: Cord, to: Cord): void {
     const { state } = this.ctx;
@@ -32,6 +73,16 @@ export class CombatSystem {
 
       this.attackEnemy(enemy);
       return;
+    }
+
+    const distanceToEnemy = getHexDistance(state, from, to);
+    if (distanceToEnemy <= enemy.aggroRange) {
+      enemy.engaged = true;
+      if (!state.combat.inCombat) {
+        this.enterCombat();
+      } else {
+        this.addToQueue(enemy);
+      }
     }
 
     const pathDirection = calculatePathDirection(enemy.HEX.CORD, state.positions.playerPos.HEX.CORD);
@@ -76,6 +127,8 @@ export class CombatSystem {
 
       state.player.stopActions = false;
 
+      if (this.tryLeaveCombatIfAllEnemiesDead()) return;
+
       if (state.player.actionPoints === 0) {
         this.moveToNextInQueue();
       }
@@ -118,8 +171,10 @@ export class CombatSystem {
     const endOfAttack = () => {
       enemy.animation.attackAnimation.stop();
       state.player.health -= damage;
+      state.player.health = Math.max(0, state.player.health);
 
       if (state.player.health <= 0) {
+        this.handlePlayerDeath();
         return;
       }
 
@@ -156,7 +211,7 @@ export class CombatSystem {
     if (weaponRange >= pathToPlayer.pathLength) {
       if (enemy.actionPoints >= enemy.weapon.actionPoints) {
         this.attackPlayer(enemy);
-      } else if (pathToPlayer.pathLength > 1) {
+      } else if (pathToPlayer.pathLength > 1 && enemy.actionPoints >= enemy.moveCost) {
         moveEnemyAlongPath(this.ctx, enemy, enemy.HEX.CORD, state.positions.playerPos.HEX.CORD);
       } else {
         this.moveToNextInQueue();
@@ -164,11 +219,18 @@ export class CombatSystem {
       return;
     }
 
-    moveEnemyAlongPath(this.ctx, enemy, enemy.HEX.CORD, state.positions.playerPos.HEX.CORD);
+    if (enemy.actionPoints >= enemy.moveCost) {
+      moveEnemyAlongPath(this.ctx, enemy, enemy.HEX.CORD, state.positions.playerPos.HEX.CORD);
+    } else {
+      this.moveToNextInQueue();
+    }
   }
 
   moveToNextInQueue(): void {
     const { state } = this.ctx;
+
+    if (this.tryLeaveCombatIfAllEnemiesDead()) return;
+
     this.setNextInQueue();
 
     if (state.combat.queuePos === -1) {
@@ -202,11 +264,32 @@ export class CombatSystem {
     this.populateQueue();
   }
 
+  private handlePlayerDeath(): void {
+    const { state } = this.ctx;
+    state.player.health = 0;
+    state.player.stopActions = true;
+    state.gameOver = true;
+
+    if (state.combat.inCombat) {
+      this.leaveCombat();
+    }
+  }
+
   private leaveCombat(): void {
     const { state } = this.ctx;
     state.player.stopActions = false;
     state.combat.inCombat = false;
     this.resetActionPoints(state.player);
+    this.clearQueue();
+  }
+
+  private tryLeaveCombatIfAllEnemiesDead(): boolean {
+    const { state } = this.ctx;
+    if (state.enemies.some((enemy) => enemy.alive)) return false;
+    if (!state.combat.inCombat) return false;
+
+    this.leaveCombat();
+    return true;
   }
 
   private clearQueue(): void {

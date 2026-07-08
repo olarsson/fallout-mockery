@@ -13,10 +13,7 @@ export class HexGrid {
   canvasOriginX = 0;
   canvasOriginY = 0;
 
-  constructor(
-    private readonly canvas: HTMLCanvasElement,
-    radius: number,
-  ) {
+  constructor(radius: number) {
     this.radius = radius;
     this.height = Math.sqrt(3) * radius;
     this.width = 2 * radius;
@@ -78,27 +75,9 @@ export class HexGrid {
     }
   }
 
-  getRelativeCanvasOffset(): Point {
-    let x = 0;
-    let y = 0;
-    let layoutElement: HTMLElement | null = this.canvas;
-
-    if (layoutElement.offsetParent) {
-      do {
-        x += layoutElement.offsetLeft;
-        y += layoutElement.offsetTop;
-        layoutElement = layoutElement.offsetParent as HTMLElement | null;
-      } while (layoutElement);
-    }
-
-    return { x, y };
-  }
-
-  getSelectedTile(mouseX: number, mouseY: number): Tile {
-    const offset = this.getRelativeCanvasOffset();
-
-    mouseX -= offset.x - OFFSET_X;
-    mouseY -= offset.y - OFFSET_Y;
+  getSelectedTile(canvasX: number, canvasY: number): Tile {
+    let mouseX = canvasX + OFFSET_X;
+    let mouseY = canvasY + OFFSET_Y;
 
     let column = Math.floor(mouseX / this.side);
     let row = Math.floor(

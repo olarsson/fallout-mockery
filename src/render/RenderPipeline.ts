@@ -11,6 +11,9 @@ const CURSOR_KEYS: Record<TileType, string> = {
   4: 'cursorStandard',
 };
 
+const ENEMY_HEX_ALIVE = 'rgba(255, 165, 0, 0.2)';
+const ENEMY_HEX_DEAD = 'rgba(96, 96, 96, 0.35)';
+
 export class RenderPipeline {
   constructor(
     private readonly canvas: HTMLCanvasElement,
@@ -32,6 +35,9 @@ export class RenderPipeline {
     this.drawCursor(ctx, state);
     this.drawBar(barCtx);
     this.drawHud(ctx, state);
+    if (state.gameOver) {
+      this.drawGameOver(ctx);
+    }
   }
 
   private clear(ctx: CanvasRenderingContext2D): void {
@@ -57,20 +63,13 @@ export class RenderPipeline {
   private drawEntities(ctx: CanvasRenderingContext2D, state: GameState): void {
     for (const enemy of state.enemies) {
       const tile = this.hexGrid.getPXAtColRow(enemy.HEX.CORD.x, enemy.HEX.CORD.y);
-      this.hexGrid.drawHexAtColRow(ctx, enemy.HEX.CORD.x, enemy.HEX.CORD.y, 'rgba(255,165,0,0.2)');
+      const hexColor = enemy.alive ? ENEMY_HEX_ALIVE : ENEMY_HEX_DEAD;
+      this.hexGrid.drawHexAtColRow(ctx, enemy.HEX.CORD.x, enemy.HEX.CORD.y, hexColor);
       drawEnemy(ctx, this.assets, enemy, tile.x, tile.y);
     }
 
     const playerCord = state.positions.playerPos.HEX.CORD;
     this.hexGrid.drawHexAtColRow(ctx, playerCord.x, playerCord.y, 'blue');
-
-    ctx.fillStyle = '#ffddff';
-    ctx.font = '14px monospace';
-    ctx.fillText(
-      String(state.player.health),
-      state.positions.playerPos.HEX.PX.x - 20,
-      state.positions.playerPos.HEX.PX.y,
-    );
 
     drawPlayer(ctx, this.assets, state);
   }
@@ -88,13 +87,36 @@ export class RenderPipeline {
   }
 
   private drawHud(ctx: CanvasRenderingContext2D, state: GameState): void {
+    if (state.gameOver) return;
+
     ctx.font = '13px monospace';
     ctx.fillStyle = '#fff';
-    ctx.fillText(`In combat: ${state.combat.inCombat}`, 20, 400);
+    ctx.fillText(`In combat: ${state.combat.inCombat}`, 20, 385);
+    if (state.combat.inCombat) {
+      const current = state.combat.queue[state.combat.queuePos];
+      const turnLabel =
+        current && 'id' in current && current.id === '_player' ? 'Player' : 'Enemy';
+      ctx.fillText(`Turn: ${turnLabel}`, 20, 400);
+    }
     ctx.fillText(
       `actionPoints: ${state.player.actionPoints}/${state.player.DEFAULTS.actionPoints}`,
       20,
       415,
     );
+  }
+
+  private drawGameOver(ctx: CanvasRenderingContext2D): void {
+    ctx.fillStyle = 'rgba(20, 8, 8, 0.55)';
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#ff4444';
+    ctx.font = 'bold 48px monospace';
+    ctx.fillText('YOU DIED', this.canvas.width / 2, this.canvas.height / 2 - 12);
+
+    ctx.fillStyle = '#e8d8d8';
+    ctx.font = '16px monospace';
+    ctx.fillText('Combat is over.', this.canvas.width / 2, this.canvas.height / 2 + 24);
+    ctx.textAlign = 'start';
   }
 }

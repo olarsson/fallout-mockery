@@ -1,43 +1,51 @@
+import { BAR_HEIGHT, CANVAS_HEIGHT, CANVAS_WIDTH } from '@/core/constants';
 import type { GameContext } from '@/core/types';
 import { isSameCord } from '@/grid/RestrictionMap';
 import { queryTile } from '@/grid/TileQuery';
 import { CombatSystem } from '@/systems/CombatSystem';
 import { movePlayerAlongPath } from '@/systems/MovementSystem';
+import { clientToCanvasPoint } from '@/utils/canvasPointer';
 
 export class InputSystem {
-  private readonly combat: CombatSystem;
-
   constructor(
     private readonly ctx: GameContext,
     private readonly canvas: HTMLCanvasElement,
-  ) {
-    this.combat = new CombatSystem(ctx);
-  }
+    private readonly combat: CombatSystem,
+    private readonly endTurnBtn: HTMLButtonElement,
+  ) {}
 
   bind(): void {
     this.canvas.addEventListener('mousemove', this.onMouseMove);
     this.canvas.addEventListener('click', this.onClick);
+    this.endTurnBtn.addEventListener('click', this.onEndTurn);
     window.addEventListener('resize', this.onResize);
   }
 
   unbind(): void {
     this.canvas.removeEventListener('mousemove', this.onMouseMove);
     this.canvas.removeEventListener('click', this.onClick);
+    this.endTurnBtn.removeEventListener('click', this.onEndTurn);
     window.removeEventListener('resize', this.onResize);
   }
 
   updateViewport(): void {
     const rect = this.canvas.getBoundingClientRect();
-    this.ctx.state.viewport = { x: rect.x, y: rect.y };
+    this.ctx.state.viewport = { x: rect.left, y: rect.top };
+  }
+
+  private canvasPoint(event: MouseEvent): { x: number; y: number } {
+    return clientToCanvasPoint(this.canvas, event.clientX, event.clientY);
   }
 
   private onMouseMove = (event: MouseEvent): void => {
     const { state, hexGrid } = this.ctx;
+    if (state.gameOver) return;
 
-    state.positions.mousePointer.HEX.PX.x = event.clientX - state.viewport.x;
-    state.positions.mousePointer.HEX.PX.y = event.clientY - state.viewport.y;
+    const point = this.canvasPoint(event);
+    state.positions.mousePointer.HEX.PX.x = point.x;
+    state.positions.mousePointer.HEX.PX.y = point.y;
 
-    const tile = hexGrid.getSelectedTile(event.pageX, event.pageY);
+    const tile = hexGrid.getSelectedTile(point.x, point.y);
     state.positions.mousePointer.HEX.CORD = { x: tile.column, y: tile.row };
 
     const tileInfo = queryTile(state, state.positions.mousePointer.HEX.CORD);
@@ -46,10 +54,11 @@ export class InputSystem {
 
   private onClick = (event: MouseEvent): void => {
     const { state, hexGrid } = this.ctx;
-    if (state.player.stopActions) return;
+    if (state.gameOver || state.player.stopActions) return;
 
     const previousClick = { ...state.positions.clickPos.HEX.CORD };
-    const tile = hexGrid.getSelectedTile(event.pageX, event.pageY);
+    const point = this.canvasPoint(event);
+    const tile = hexGrid.getSelectedTile(point.x, point.y);
 
     if (tile.column >= 0 && tile.row >= 0) {
       const px = hexGrid.getPXAtColRow(tile.column, tile.row);
@@ -71,15 +80,25 @@ export class InputSystem {
     }
   };
 
+  private onEndTurn = (): void => {
+    if (this.ctx.state.gameOver) return;
+    this.combat.endPlayerTurn();
+  };
+
   private onResize = (): void => {
-    fixCanvasSize(this.canvas, this.ctx.barCanvas);
     this.updateViewport();
   };
 }
 
 export function fixCanvasSize(...canvases: HTMLCanvasElement[]): void {
+  // Logical resolution stays fixed; CSS scales the stage to the viewport.
   for (const canvas of canvases) {
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
+    if (canvas.id === 'canvas') {
+      canvas.width = CANVAS_WIDTH;
+      canvas.height = CANVAS_HEIGHT;
+    } else if (canvas.id === 'canvasBar') {
+      canvas.width = CANVAS_WIDTH;
+      canvas.height = BAR_HEIGHT;
+    }
   }
 }

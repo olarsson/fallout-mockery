@@ -7,8 +7,23 @@
   </head>
   <body>
     <main id="game-root">
-      <canvas id="canvas" width="700" height="425"></canvas>
-      <canvas id="canvasBar" width="700" height="100"></canvas>
+      <div id="game-stage">
+        <canvas id="canvas" width="700" height="425"></canvas>
+        <div id="bar-panel">
+          <canvas id="canvasBar" width="700" height="100"></canvas>
+          <div id="bar-overlay">
+            <div id="player-hp" aria-live="polite">HP: 40 / 40</div>
+            <button type="button" id="end-turn-btn" hidden>End Turn</button>
+          </div>
+        </div>
+        <div id="game-over" class="game-over" aria-live="assertive">
+          <div id="game-over-card">
+            <p id="game-over-title">You Died</p>
+            <p id="game-over-message">Your journey ends here in the wasteland.</p>
+            <button type="button" id="try-again-btn">Try Again</button>
+          </div>
+        </div>
+      </div>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>

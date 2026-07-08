@@ -3,6 +3,9 @@ import type { FacingKey } from './types';
 export const BOX_SIZE = 25;
 export const CANVAS_WIDTH = 700;
 export const CANVAS_HEIGHT = 425;
+export const BAR_HEIGHT = 100;
+export const STAGE_WIDTH = CANVAS_WIDTH;
+export const STAGE_HEIGHT = CANVAS_HEIGHT + BAR_HEIGHT;
 export const HEX_RADIUS = 20;
 
 export const GRID_COLS = Math.floor(CANVAS_WIDTH / BOX_SIZE);

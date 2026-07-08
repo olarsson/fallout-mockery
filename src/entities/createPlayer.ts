@@ -10,10 +10,11 @@ import type {
 export function createPlayer(): PlayerEntity {
   const player: PlayerEntity = {
     id: '_player',
-    DEFAULTS: { actionPoints: 8 },
+    DEFAULTS: { actionPoints: 8, maxHealth: 40 },
     health: 40,
     state: 0,
     actionPoints: 8,
+    moveCost: 1,
     stopActions: false,
     weapon: { ...WEAPONS.rifle },
     temp: { attackStep: 0, haveBeenRun: false },

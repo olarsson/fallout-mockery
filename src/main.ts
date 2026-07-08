@@ -9,10 +9,27 @@ function getCanvas(id: string): HTMLCanvasElement {
   return element;
 }
 
+function getElement<T extends HTMLElement>(id: string, type: new () => T): T {
+  const element = document.getElementById(id);
+  if (!(element instanceof type)) {
+    throw new Error(`Expected <${type.name.toLowerCase()} id="${id}">`);
+  }
+  return element;
+}
+
 async function main(): Promise<void> {
   const canvas = getCanvas('canvas');
   const barCanvas = getCanvas('canvasBar');
-  const game = new Game(canvas, barCanvas);
+  const playerHp = getElement('player-hp', HTMLElement);
+  const endTurnBtn = getElement('end-turn-btn', HTMLButtonElement);
+  const gameOverOverlay = getElement('game-over', HTMLElement);
+  const tryAgainBtn = getElement('try-again-btn', HTMLButtonElement);
+  const game = new Game(canvas, barCanvas, {
+    playerHp,
+    endTurnBtn,
+    gameOverOverlay,
+    tryAgainBtn,
+  });
 
   await game.start();
 

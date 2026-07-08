@@ -18,21 +18,22 @@ export function movePlayerAlongPath(
 ): void {
   const { state } = ctx;
 
-  if (state.player.state !== 0) return;
+  if (state.gameOver || state.player.state !== 0) return;
 
   beginDynamicRestrictions(state);
 
   const steps = buildMovePath(state, from, to, maxSteps);
 
   if (state.combat.inCombat) {
-    if (state.player.actionPoints === 0) {
+    if (state.player.actionPoints < state.player.moveCost) {
       new CombatSystem(ctx).moveToNextInQueue();
       endDynamicRestrictions(state);
       return;
     }
 
-    const allowed = steps.slice(0, state.player.actionPoints);
-    subtractActionPoints(state.player, allowed.length);
+    const maxSteps = Math.floor(state.player.actionPoints / state.player.moveCost);
+    const allowed = steps.slice(0, maxSteps);
+    subtractActionPoints(state.player, allowed.length * state.player.moveCost);
     runPlayerSteps(ctx, allowed);
     return;
   }
@@ -51,9 +52,11 @@ function runPlayerSteps(
   }
 
   let index = 0;
+  const startedInCombat = state.combat.inCombat;
   state.player.animation.movementAnimation.start();
 
-  scheduler.scheduleRepeating(
+  let moveScheduleId = 0;
+  moveScheduleId = scheduler.scheduleRepeating(
     TIMING.moveStepMs,
     steps.length,
     () => {
@@ -63,13 +66,24 @@ function runPlayerSteps(
       setPlayerPosition(hexGrid, state.positions.playerPos, step.nextCords.x, step.nextCords.y);
       setPlayerFacing(state.positions.playerPos, toFacing(step.pathDirection));
 
-      if (index === steps.length - 1) {
+      const combat = new CombatSystem(ctx);
+      combat.checkProximityCombat();
+
+      const enteredCombat = !startedInCombat && state.combat.inCombat;
+      const isLastStep = index === steps.length - 1;
+
+      if (enteredCombat || isLastStep) {
         state.player.animation.movementAnimation.stop();
         endDynamicRestrictions(state);
+      }
 
-        if (state.combat.inCombat && state.player.actionPoints === 0) {
-          new CombatSystem(ctx).moveToNextInQueue();
-        }
+      if (enteredCombat) {
+        scheduler.cancel(moveScheduleId);
+        return;
+      }
+
+      if (isLastStep && state.combat.inCombat && state.player.actionPoints === 0) {
+        combat.moveToNextInQueue();
       }
 
       index += 1;
@@ -96,8 +110,10 @@ export function moveEnemyAlongPath(
     steps.pop();
   }
 
-  const allowed = steps.slice(0, enemy.actionPoints);
-  subtractActionPoints(enemy, allowed.length);
+  const moveCost = enemy.moveCost;
+  const maxSteps = Math.floor(enemy.actionPoints / moveCost);
+  const allowed = steps.slice(0, maxSteps);
+  subtractActionPoints(enemy, allowed.length * moveCost);
 
   if (allowed.length === 0) {
     endDynamicRestrictions(state);

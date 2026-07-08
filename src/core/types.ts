@@ -52,10 +52,11 @@ export type AnimationController = {
 
 export type PlayerEntity = {
   id: '_player';
-  DEFAULTS: { actionPoints: number };
+  DEFAULTS: { actionPoints: number; maxHealth: number };
   health: number;
   state: EntityState;
   actionPoints: number;
+  moveCost: number;
   stopActions: boolean;
   weapon: Weapon;
   temp: { attackStep: number; haveBeenRun: boolean };
@@ -71,6 +72,7 @@ export type EnemyEntity = {
   maxsteps: number;
   aggroRange: number;
   actionPoints: number;
+  moveCost: number;
   DEFAULTS: { actionPoints: number };
   HEX: HexPosition;
   FACING: Facing;
@@ -143,6 +145,7 @@ export type GameState = {
   player: PlayerEntity;
   enemies: EnemyEntity[];
   combat: CombatState;
+  gameOver: boolean;
   positions: {
     mousePointer: PointerPosition;
     clickPos: PointerPosition;

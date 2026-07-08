@@ -17,6 +17,12 @@ export const WEAPONS = {
     melee: false,
     range: 8,
     damage: [7, 12],
+    actionPoints: 3,
+  },
+  scorpion: {
+    melee: true,
+    range: 1,
+    damage: [7, 12],
     actionPoints: 4,
   },
   knife: {
