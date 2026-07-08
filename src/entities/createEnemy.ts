@@ -67,8 +67,12 @@ function createEnemyAnimationController(
         enemy.state = 1;
         enemy.temp.haveBeenRun = false;
         enemy.temp.tempStep = 0;
+        enemy.animation.startTime = Date.now();
       },
       stop() {
+        enemy.temp.tempStep = 0;
+        enemy.temp.haveBeenRun = false;
+        enemy.animation.startTime = null;
         enemy.state = 0;
       },
     },
@@ -78,8 +82,12 @@ function createEnemyAnimationController(
         enemy.state = 2;
         enemy.temp.haveBeenRun = false;
         enemy.temp.tempStep = 0;
+        enemy.animation.startTime = Date.now();
       },
       stop() {
+        enemy.temp.tempStep = 0;
+        enemy.temp.haveBeenRun = false;
+        enemy.animation.startTime = null;
         enemy.state = 0;
       },
     },
@@ -89,8 +97,12 @@ function createEnemyAnimationController(
         enemy.state = 3;
         enemy.temp.haveBeenRun = false;
         enemy.temp.tempStep = 0;
+        enemy.animation.startTime = Date.now();
       },
       stop() {
+        enemy.temp.tempStep = 0;
+        enemy.temp.haveBeenRun = false;
+        enemy.animation.startTime = null;
         enemy.state = 0;
       },
     },
@@ -100,8 +112,12 @@ function createEnemyAnimationController(
         enemy.state = -1;
         enemy.temp.haveBeenRun = false;
         enemy.temp.tempStep = 0;
+        enemy.animation.startTime = Date.now();
       },
       stop() {
+        enemy.temp.tempStep = 0;
+        enemy.temp.haveBeenRun = false;
+        enemy.animation.startTime = null;
         enemy.state = 0;
       },
     },

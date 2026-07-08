@@ -16,6 +16,20 @@ body {
   overflow: hidden;
 }
 
+body.anim-test-mode #game-root {
+  display: none !important;
+}
+
+body.anim-test-mode #anim-tester-root {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+  background: #1a1a1a;
+}
+
 #game-root {
   width: 100vw;
   height: 100vh;
@@ -154,4 +168,132 @@ body {
 
 #try-again-btn:hover {
   background: linear-gradient(#5a4f3f, #3a3428);
+}
+
+#anim-tester-root:not(:empty) {
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+  background: #1a1a1a;
+}
+
+.anim-tester-status {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #4a3f2f;
+  background: #221c14;
+  color: #f0e6a8;
+}
+
+.anim-tester-status.is-error {
+  border-color: #8b2020;
+  color: #ff8888;
+}
+
+#anim-tester-panel {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1.25rem;
+}
+
+#anim-tester-header h1 {
+  margin: 0 0 0.35rem;
+  font-size: 1.35rem;
+  color: #f0e6a8;
+}
+
+#anim-tester-header p {
+  margin: 0 0 0.75rem;
+  color: #bbb;
+}
+
+#anim-tester-back {
+  color: #8ec8ff;
+}
+
+#anim-tester-body {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) 1fr minmax(220px, 360px);
+  gap: 1rem;
+  align-items: start;
+}
+
+#anim-tester-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 1px solid #4a3f2f;
+  background: #221c14;
+}
+
+.anim-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+.anim-field select,
+.anim-field input[type='range'] {
+  width: 100%;
+}
+
+.anim-facing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.anim-facing button {
+  padding: 0.25rem 0.45rem;
+  border: 1px solid #6a5a40;
+  background: #2a2418;
+  color: #f0e6a8;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.anim-facing button.is-active {
+  background: #5a4a30;
+  border-color: #c9a85c;
+}
+
+#anim-play {
+  padding: 0.45rem 0.9rem;
+  border: 2px solid #8b7355;
+  background: linear-gradient(#4a3f2f, #2a2418);
+  color: #f0e6a8;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+#anim-tester-preview,
+#anim-tester-atlas {
+  padding: 1rem;
+  border: 1px solid #4a3f2f;
+  background: #221c14;
+  text-align: center;
+}
+
+#anim-canvas,
+#anim-atlas-canvas {
+  display: block;
+  margin: 0 auto;
+  image-rendering: pixelated;
+  border: 1px solid #444;
+  background: #111;
+}
+
+#anim-meta,
+.anim-atlas-title {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  color: #aaa;
+}
+
+@media (max-width: 900px) {
+  #anim-tester-body {
+    grid-template-columns: 1fr;
+  }
 }

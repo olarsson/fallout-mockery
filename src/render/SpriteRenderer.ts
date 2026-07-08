@@ -24,10 +24,12 @@ export function drawSprite(
   frameY = 0,
 ): void {
   const image = assets.get(config.imageKey);
+  const sourceX = (config.sourceX ?? 0) + config.clipX * frameX;
+  const sourceY = (config.sourceY ?? 0) + config.clipY * frameY;
   ctx.drawImage(
     image,
-    config.clipX * frameX,
-    config.clipY * frameY,
+    sourceX,
+    sourceY,
     config.width,
     config.height,
     destX - config.offsetX,
@@ -161,19 +163,31 @@ function advanceAttackFrame(player: PlayerEntity, frameMs: number): void {
 }
 
 function advanceEnemyMoveFrame(enemy: EnemyEntity, totalFrames: number): void {
+  if (enemy.temp.haveBeenRun) return;
   if (!enemy.animation.startTime) enemy.animation.startTime = Date.now();
   if (Date.now() - enemy.animation.startTime > TIMING.moveFrameMs) {
     enemy.animation.startTime = Date.now();
-    enemy.temp.tempStep += 1;
-    if (enemy.temp.tempStep >= totalFrames) enemy.temp.tempStep = 0;
+    const nextStep = enemy.temp.tempStep + 1;
+    if (nextStep >= totalFrames) {
+      enemy.temp.haveBeenRun = true;
+      enemy.temp.tempStep = totalFrames - 1;
+      return;
+    }
+    enemy.temp.tempStep = nextStep;
   }
 }
 
 function advanceEnemyAttackFrame(enemy: EnemyEntity, totalFrames: number): void {
+  if (enemy.temp.haveBeenRun) return;
   if (!enemy.animation.startTime) enemy.animation.startTime = Date.now();
   if (Date.now() - enemy.animation.startTime > TIMING.attackFrameMs) {
     enemy.animation.startTime = Date.now();
-    enemy.temp.tempStep += 1;
-    if (enemy.temp.tempStep >= totalFrames) enemy.temp.tempStep = 0;
+    const nextStep = enemy.temp.tempStep + 1;
+    if (nextStep >= totalFrames) {
+      enemy.temp.haveBeenRun = true;
+      enemy.temp.tempStep = totalFrames - 1;
+      return;
+    }
+    enemy.temp.tempStep = nextStep;
   }
 }

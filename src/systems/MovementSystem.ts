@@ -2,7 +2,7 @@ import { TIMING } from '@/core/constants';
 import type { Cord, EnemyEntity, GameContext } from '@/core/types';
 import { setEnemyFacing, setEnemyPosition } from '@/entities/createEnemy';
 import { setPlayerFacing, setPlayerPosition } from '@/entities/createPlayer';
-import { buildMovePath, toFacing } from '@/grid/Pathfinding';
+import { buildMovePath, calculatePathDirection, toFacing } from '@/grid/Pathfinding';
 import {
   beginDynamicRestrictions,
   endDynamicRestrictions,
@@ -132,12 +132,21 @@ export function moveEnemyAlongPath(
       if (!step) return;
 
       setEnemyPosition(hexGrid, enemy, step.nextCords.x, step.nextCords.y);
-      setEnemyFacing(enemy, toFacing(step.pathDirection));
 
-      if (index === allowed.length - 1) {
+      const isLastStep = index === allowed.length - 1;
+      if (isLastStep) {
+        setEnemyFacing(enemy, toFacing(calculatePathDirection(enemy.HEX.CORD, to)));
+        enemy.temp.tempStep = 0;
+        enemy.temp.haveBeenRun = false;
+        enemy.animation.startTime = null;
         enemy.animation.movementAnimation.stop();
         endDynamicRestrictions(state);
         new CombatSystem(ctx).nextEnemyAction(enemy);
+      } else {
+        setEnemyFacing(enemy, toFacing(step.pathDirection));
+        enemy.temp.tempStep = 0;
+        enemy.temp.haveBeenRun = false;
+        enemy.animation.startTime = Date.now();
       }
 
       index += 1;

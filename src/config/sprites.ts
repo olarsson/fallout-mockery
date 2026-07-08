@@ -48,7 +48,7 @@ export const ENEMY_SPRITES = {
     clipX: 59,
     clipY: 49,
     offsetX: 0,
-    offsetY: 50,
+    offsetY: 20,
   },
   scorpionMoving: {
     imageKey: 'scorpionMoving',
@@ -121,9 +121,12 @@ export const UI_SPRITES = {
 } as const;
 
 export const SPRITE_URLS: Record<string, string> = {
+  playerCharacter: '/assets/sprites/character.gif',
   playerStill: '/assets/img/char_36_419.gif',
+  playerUnarmedStill: '/assets/img/char_36_560.gif',
   playerMoving: '/assets/img/complete_movement.gif',
   playerAttacking: '/assets/img/char_gun_firing.png',
+  playerHit: '/assets/img/char_68_68.png',
   scorpionStill: '/assets/img/enemy_scorpion_still.png',
   scorpionMoving: '/assets/img/enemy_scorpion_moving.png',
   scorpionAttacking: '/assets/img/enemy_scorpion_attack.png',

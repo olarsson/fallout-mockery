@@ -20,6 +20,8 @@ export type EntityState = -1 | 0 | 1 | 2 | 3;
 
 export type SpriteSheetConfig = {
   imageKey: string;
+  sourceX?: number;
+  sourceY?: number;
   totalFrames?: number;
   countX: number;
   countY: number;
@@ -29,6 +31,14 @@ export type SpriteSheetConfig = {
   clipY: number;
   offsetX: number;
   offsetY: number;
+};
+
+export type PlayerCharacterAnimation = {
+  id: string;
+  label: string;
+  config: SpriteSheetConfig;
+  /** Use a pre-cut asset when atlas coordinates are not mapped yet. */
+  standaloneKey?: string;
 };
 
 export type EntityAnimations = {
