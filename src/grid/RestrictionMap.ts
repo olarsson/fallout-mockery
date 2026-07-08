@@ -1,4 +1,4 @@
-import { GRID_COLS, GRID_ROWS } from '@/core/constants';
+import { isInGridBounds } from '@/grid/hexNeighbors';
 import type { Cord, GameState } from '@/core/types';
 
 /** Returns true when the tile is walkable (not in the restricted list). */
@@ -7,7 +7,7 @@ export function isWalkable(state: GameState, x: number, y: number): boolean {
     ? state.restricted.dynamicCords
     : state.restricted.cords;
 
-  if (x > GRID_COLS || x < 0 || y > GRID_ROWS || y < 0) return false;
+  if (!isInGridBounds(x, y)) return false;
 
   return !activeArr.some((tile) => tile.x === x && tile.y === y);
 }

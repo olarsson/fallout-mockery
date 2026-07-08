@@ -13,6 +13,7 @@ const CURSOR_KEYS: Record<TileType, string> = {
 
 const ENEMY_HEX_ALIVE = 'rgba(255, 165, 0, 0.2)';
 const ENEMY_HEX_DEAD = 'rgba(96, 96, 96, 0.35)';
+const PATH_PREVIEW_FILL = 'rgba(0, 210, 255, 0.35)';
 
 export class RenderPipeline {
   constructor(
@@ -29,8 +30,9 @@ export class RenderPipeline {
 
     this.clear(ctx);
     this.drawBackground(ctx);
-    this.drawHoverHex(ctx, state);
     this.drawRestrictedAreas(ctx, state);
+    this.drawPathPreview(ctx, state);
+    this.drawHoverHex(ctx, state);
     this.drawEntities(ctx, state);
     this.drawCursor(ctx, state);
     this.drawBar(barCtx);
@@ -47,6 +49,12 @@ export class RenderPipeline {
   private drawBackground(ctx: CanvasRenderingContext2D): void {
     const bg = this.assets.get('bgDesert');
     ctx.drawImage(bg, 0, 0, 960, 440, 0, 0, 960, 440);
+  }
+
+  private drawPathPreview(ctx: CanvasRenderingContext2D, state: GameState): void {
+    for (const cord of state.pathPreview) {
+      this.hexGrid.drawHexAtColRow(ctx, cord.x, cord.y, PATH_PREVIEW_FILL);
+    }
   }
 
   private drawHoverHex(ctx: CanvasRenderingContext2D, state: GameState): void {

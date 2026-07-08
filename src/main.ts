@@ -1,10 +1,4 @@
 import { Game } from '@/game/Game';
-import {
-  AnimationTester,
-  enableAnimationTesterLayout,
-  hideGameUi,
-  isAnimationTesterMode,
-} from '@/dev/AnimationTester';
 import '@/styles/main.css';
 
 function getCanvas(id: string): HTMLCanvasElement {
@@ -24,19 +18,6 @@ function getElement<T extends HTMLElement>(id: string, type: new () => T): T {
 }
 
 async function main(): Promise<void> {
-  if (isAnimationTesterMode()) {
-    enableAnimationTesterLayout();
-    hideGameUi();
-    const testerRoot = document.getElementById('anim-tester-root');
-    if (!testerRoot) {
-      throw new Error('Expected <div id="anim-tester-root">');
-    }
-    const tester = new AnimationTester(testerRoot);
-    await tester.start();
-    window.addEventListener('beforeunload', () => tester.destroy());
-    return;
-  }
-
   const canvas = getCanvas('canvas');
   const barCanvas = getCanvas('canvasBar');
   const playerHp = getElement('player-hp', HTMLElement);

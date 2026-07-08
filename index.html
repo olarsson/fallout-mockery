@@ -6,14 +6,6 @@
     <title>Fallout Mockery</title>
   </head>
   <body>
-    <script>
-      if (
-        new URLSearchParams(location.search).has('animtest') ||
-        location.hash === '#animtest'
-      ) {
-        document.body.classList.add('anim-test-mode');
-      }
-    </script>
     <main id="game-root">
       <div id="game-stage">
         <canvas id="canvas" width="700" height="425"></canvas>
@@ -33,7 +25,6 @@
         </div>
       </div>
     </main>
-    <div id="anim-tester-root"></div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

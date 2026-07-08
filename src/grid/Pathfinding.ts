@@ -1,5 +1,6 @@
-import { CORD_PRIORITIES, GRID_COLS, GRID_ROWS } from '@/core/constants';
+import { CORD_PRIORITIES, GRID_COLS } from '@/core/constants';
 import type { Cord, Facing, FacingKey, GameState, NextCordResult, PathDirection } from '@/core/types';
+import { isInGridBounds } from '@/grid/hexNeighbors';
 import { isWalkable } from '@/grid/RestrictionMap';
 
 export function getNextCord(
@@ -145,6 +146,10 @@ export function getStraightPathBetweenCords(
   from: Cord,
   to: Cord,
 ): { pathLength: number; isPathPossible: boolean } {
+  if (from.x === to.x && from.y === to.y) {
+    return { pathLength: 0, isPathPossible: true };
+  }
+
   let previousDestination = { ...from };
   let pathLength = 0;
   let isPathPossible = true;
@@ -157,7 +162,7 @@ export function getStraightPathBetweenCords(
       previousDestination.y,
       pathDirection.directionX,
       pathDirection.directionY,
-      true,
+      false,
     );
 
     if (!nextCords) {
@@ -166,12 +171,25 @@ export function getStraightPathBetweenCords(
     }
 
     pathLength += 1;
-    if (nextCords.restricted) isPathPossible = false;
+    const reachedTarget =
+      nextCords.newCords.x === to.x && nextCords.newCords.y === to.y;
+
+    if (
+      !reachedTarget &&
+      !isWalkable(state, nextCords.newCords.x, nextCords.newCords.y)
+    ) {
+      isPathPossible = false;
+    }
+
     previousDestination = nextCords.newCords;
 
-    if (nextCords.newCords.x === to.x && nextCords.newCords.y === to.y) {
+    if (reachedTarget) {
       break;
     }
+  }
+
+  if (previousDestination.x !== to.x || previousDestination.y !== to.y) {
+    isPathPossible = false;
   }
 
   return { pathLength, isPathPossible };
@@ -248,5 +266,5 @@ export function toFacing(direction: PathDirection): Facing {
 }
 
 export function isOutOfBounds(x: number, y: number): boolean {
-  return x > GRID_COLS || x < 0 || y > GRID_ROWS || y < 0;
+  return !isInGridBounds(x, y);
 }

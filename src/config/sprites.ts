@@ -36,6 +36,19 @@ export const PLAYER_SPRITES = {
     offsetX: 10,
     offsetY: 58,
   },
+  /** Placeholder until a proper multi-frame hit sheet is added. */
+  hitBasic: {
+    imageKey: 'playerHit',
+    totalFrames: 1,
+    countX: 1,
+    countY: 1,
+    width: 68,
+    height: 68,
+    clipX: 0,
+    clipY: 68,
+    offsetX: 0,
+    offsetY: 50,
+  },
 } as const satisfies Record<string, SpriteSheetConfig>;
 
 export const ENEMY_SPRITES = {
@@ -121,9 +134,7 @@ export const UI_SPRITES = {
 } as const;
 
 export const SPRITE_URLS: Record<string, string> = {
-  playerCharacter: '/assets/sprites/character.gif',
   playerStill: '/assets/img/char_36_419.gif',
-  playerUnarmedStill: '/assets/img/char_36_560.gif',
   playerMoving: '/assets/img/complete_movement.gif',
   playerAttacking: '/assets/img/char_gun_firing.png',
   playerHit: '/assets/img/char_68_68.png',

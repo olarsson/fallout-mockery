@@ -9,6 +9,7 @@ import {
   isSameCord,
 } from '@/grid/RestrictionMap';
 import { CombatSystem } from '@/systems/CombatSystem';
+import { tryMapTransition } from '@/systems/MapTransitionSystem';
 
 export function movePlayerAlongPath(
   ctx: GameContext,
@@ -63,8 +64,16 @@ function runPlayerSteps(
       const step = steps[index];
       if (!step) return;
 
+      const previousCord = { ...state.positions.playerPos.HEX.CORD };
       setPlayerPosition(hexGrid, state.positions.playerPos, step.nextCords.x, step.nextCords.y);
       setPlayerFacing(state.positions.playerPos, toFacing(step.pathDirection));
+
+      if (tryMapTransition(ctx, previousCord, step.nextCords)) {
+        state.player.animation.movementAnimation.stop();
+        endDynamicRestrictions(state);
+        scheduler.cancel(moveScheduleId);
+        return;
+      }
 
       const combat = new CombatSystem(ctx);
       combat.checkProximityCombat();

@@ -63,7 +63,7 @@ export class CombatSystem {
     const pathToEnemy = getStraightPathBetweenCords(state, from, to);
     const weaponRange = state.player.weapon.range ?? 0;
 
-    if (pathToEnemy.pathLength <= weaponRange) {
+    if (pathToEnemy.pathLength <= weaponRange && pathToEnemy.isPathPossible) {
       enemy.engaged = true;
       this.addToQueue(enemy);
 
@@ -103,6 +103,14 @@ export class CombatSystem {
     );
 
     if (state.player.actionPoints < state.player.weapon.actionPoints) return;
+
+    const shotLine = getStraightPathBetweenCords(
+      state,
+      state.positions.playerPos.HEX.CORD,
+      enemy.HEX.CORD,
+    );
+    const weaponRange = state.player.weapon.range ?? 0;
+    if (!shotLine.isPathPossible || shotLine.pathLength > weaponRange) return;
 
     this.subtractActionPoints(state.player, state.player.weapon.actionPoints);
     state.player.stopActions = true;
@@ -164,6 +172,17 @@ export class CombatSystem {
       return;
     }
 
+    const shotLine = getStraightPathBetweenCords(
+      state,
+      enemy.HEX.CORD,
+      state.positions.playerPos.HEX.CORD,
+    );
+    const weaponRange = enemy.weapon.range ?? 0;
+    if (!shotLine.isPathPossible || shotLine.pathLength > weaponRange) {
+      this.nextEnemyAction(enemy);
+      return;
+    }
+
     this.subtractActionPoints(enemy, enemy.weapon.actionPoints);
 
     const damage = randomInt(enemy.weapon.damage[0], enemy.weapon.damage[1]);
@@ -178,7 +197,11 @@ export class CombatSystem {
         return;
       }
 
-      this.nextEnemyAction(enemy);
+      state.player.animation.hitAnimation?.start();
+      scheduler.delay(TIMING.animationHoldMs, () => {
+        state.player.animation.hitAnimation?.stop();
+        this.nextEnemyAction(enemy);
+      });
     };
 
     enemy.animation.attackAnimation.start();
@@ -208,7 +231,7 @@ export class CombatSystem {
 
     const weaponRange = enemy.weapon.range ?? 0;
 
-    if (weaponRange >= pathToPlayer.pathLength) {
+    if (weaponRange >= pathToPlayer.pathLength && pathToPlayer.isPathPossible) {
       if (enemy.actionPoints >= enemy.weapon.actionPoints) {
         this.attackPlayer(enemy);
       } else if (pathToPlayer.pathLength > 1 && enemy.actionPoints >= enemy.moveCost) {

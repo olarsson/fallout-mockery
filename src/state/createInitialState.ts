@@ -42,8 +42,10 @@ export function createInitialState(hexGrid: HexGrid): GameState {
       dynamicCords: [],
       cords: [...STATIC_RESTRICTED_TILES],
     },
+    map: { chunk: { x: 0, y: 0 } },
     viewport: { x: 0, y: 0 },
     cursorType: 0,
+    pathPreview: [],
   };
 
   return state;
@@ -59,6 +61,8 @@ export function resetGameState(state: GameState, hexGrid: HexGrid): void {
   state.gameOver = fresh.gameOver;
   state.positions = fresh.positions;
   state.restricted = fresh.restricted;
+  state.map = fresh.map;
   state.cursorType = fresh.cursorType;
+  state.pathPreview = fresh.pathPreview;
   state.viewport = viewport;
 }

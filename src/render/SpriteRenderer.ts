@@ -24,12 +24,10 @@ export function drawSprite(
   frameY = 0,
 ): void {
   const image = assets.get(config.imageKey);
-  const sourceX = (config.sourceX ?? 0) + config.clipX * frameX;
-  const sourceY = (config.sourceY ?? 0) + config.clipY * frameY;
   ctx.drawImage(
     image,
-    sourceX,
-    sourceY,
+    config.clipX * frameX,
+    config.clipY * frameY,
     config.width,
     config.height,
     destX - config.offsetX,
@@ -88,6 +86,11 @@ export function drawPlayer(
       player.temp.attackStep,
       row,
     );
+    return;
+  }
+
+  if (player.state === 3 && player.animations.hit) {
+    drawSprite(ctx, assets, player.animations.hit, x, y, 0, 0);
   }
 }
 

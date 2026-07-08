@@ -22,6 +22,7 @@ export function createPlayer(): PlayerEntity {
       still: { ...PLAYER_SPRITES.stillBasic },
       moving: { ...PLAYER_SPRITES.movingBasic },
       attack: { ...PLAYER_SPRITES.gunFireBasic },
+      hit: { ...PLAYER_SPRITES.hitBasic },
     },
     animation: null as unknown as AnimationController,
   };
@@ -64,6 +65,21 @@ function createAnimationController(
     attackAnimation: {
       start() {
         entity.state = 2;
+        entity.temp.haveBeenRun = false;
+        entity.temp.attackStep = 0;
+        controller.startTime = Date.now();
+      },
+      stop() {
+        entity.temp.attackStep = 0;
+        entity.temp.haveBeenRun = false;
+        controller.startTime = null;
+        entity.state = 0;
+      },
+    },
+
+    hitAnimation: {
+      start() {
+        entity.state = 3;
         entity.temp.haveBeenRun = false;
         entity.temp.attackStep = 0;
         controller.startTime = Date.now();

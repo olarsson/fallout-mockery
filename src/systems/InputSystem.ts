@@ -4,6 +4,7 @@ import { isSameCord } from '@/grid/RestrictionMap';
 import { queryTile } from '@/grid/TileQuery';
 import { CombatSystem } from '@/systems/CombatSystem';
 import { movePlayerAlongPath } from '@/systems/MovementSystem';
+import { updatePathPreview } from '@/systems/PathPreview';
 import { clientToCanvasPoint } from '@/utils/canvasPointer';
 
 export class InputSystem {
@@ -50,6 +51,7 @@ export class InputSystem {
 
     const tileInfo = queryTile(state, state.positions.mousePointer.HEX.CORD);
     state.cursorType = tileInfo.type;
+    updatePathPreview(state, state.positions.mousePointer.HEX.CORD, tileInfo);
   };
 
   private onClick = (event: MouseEvent): void => {
